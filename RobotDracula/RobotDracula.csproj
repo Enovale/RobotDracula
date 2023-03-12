@@ -13,7 +13,6 @@
       https://nuget.samboy.dev/v3/index.json
     </RestoreAdditionalProjectSources>
     <RootNamespace>RobotDracula</RootNamespace>
-    <GameDirectoryPath>CHANGE THIS TO YOUR GAME PATH (where the EXE is)</GameDirectoryPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,4 +25,6 @@
     <Reference Include="$(GameDirectoryPath)\BepInEx\interop\*.dll" />
     <Reference Include="$(GameDirectoryPath)\BepInEx\core\Unhollower*.dll" />
   </ItemGroup>
+  
+  <Import Project="../GamePath.targets" />
 </Project>

@@ -2,6 +2,11 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RobotDracula", "RobotDracula\RobotDracula.csproj", "{CADE281E-334B-4FFD-B9DD-21CE01BECEFB}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{CBBDE1A4-6943-410A-8E06-CD5BFCA07572}"
+	ProjectSection(SolutionItems) = preProject
+		GamePath.targets = GamePath.targets
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

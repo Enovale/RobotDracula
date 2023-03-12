@@ -4,6 +4,7 @@ using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using HarmonyLib;
 using Il2CppInterop.Runtime.Injection;
+using Il2CppSystem.IO;
 using RobotDracula.UI;
 using UnityEngine;
 using UnityEngine.Events;
@@ -18,6 +19,15 @@ namespace RobotDracula;
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 public class Plugin : BasePlugin
 {
+    const string IL2CPP_LIBS_FOLDER =
+#if UNHOLLOWER
+            "unhollowed"
+#else
+            "interop"
+#endif
+        ;
+    public string UnhollowedModulesFolder => Path.Combine(Paths.BepInExRootPath, IL2CPP_LIBS_FOLDER);
+    
     public static ManualLogSource PluginLog;
 
     public static UIBase UiBase { get; private set; }
@@ -34,7 +44,8 @@ public class Plugin : BasePlugin
 
         Universe.Init(5f, OnInitialized, UniverseLog, new UniverseLibConfig()
         {
-            Force_Unlock_Mouse = true
+            Force_Unlock_Mouse = true,
+            Unhollowed_Modules_Folder = UnhollowedModulesFolder
         });
     }
 
