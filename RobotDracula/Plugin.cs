@@ -69,6 +69,8 @@ public class Plugin : BasePlugin
 
     private void UiUpdate()
     {
+        UiHelper.Update();
+        
         if (_completeCooldown <= 0f && Singleton<StageController>.Instance.Phase == STAGE_PHASE.WAIT_COMMAND)
         {
             BattleHelper.SetToggleToWinRate();
