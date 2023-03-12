@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Condition="'$(OS)' == 'Windows_NT'" Command="XCOPY &quot;$(TargetPath)&quot; &quot;$(GameDirectoryPath)/BepInEx/plugins/&quot; /S /Y"/>
+    <Exec Condition="'$(OS)' == 'Windows_NT'" Command="XCOPY &quot;$(TargetPath)&quot; &quot;$(GameDirectoryPath)\BepInEx\plugins\&quot; /S /Y"/>
     <Exec Condition="'$(OS)' == 'UNIX'" Command="mkdir -p &quot;$(GameDirectoryPath)/BepInEx/plugins/&quot; &amp;&amp; cp -rf &quot;$(TargetPath)&quot; &quot;$(GameDirectoryPath)/BepInEx/plugins/&quot;"/>
   </Target>
   
