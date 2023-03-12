@@ -2,14 +2,10 @@
 using BepInEx;
 using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
-using HarmonyLib;
-using Il2CppInterop.Runtime.Injection;
 using Il2CppSystem.IO;
+using RobotDracula.Battle;
 using RobotDracula.UI;
 using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 using UniverseLib;
 using UniverseLib.Config;
 using UniverseLib.UI;
@@ -31,6 +27,8 @@ public class Plugin : BasePlugin
     public static ManualLogSource PluginLog;
 
     public static UIBase UiBase { get; private set; }
+
+    private float _completeCooldown;
 
     public Plugin()
     {
@@ -71,5 +69,14 @@ public class Plugin : BasePlugin
 
     private void UiUpdate()
     {
+        if (_completeCooldown <= 0f && Singleton<StageController>.Instance.Phase == STAGE_PHASE.WAIT_COMMAND)
+        {
+            BattleHelper.SetToggleToWinRate();
+            BattleHelper.CompleteCommand();
+            _completeCooldown = 1f;
+        }
+
+        if (_completeCooldown > -1f)
+            _completeCooldown -= Time.deltaTime;
     }
 }
