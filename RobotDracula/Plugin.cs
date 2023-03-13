@@ -3,7 +3,7 @@ using BepInEx;
 using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using Il2CppSystem.IO;
-using RobotDracula.Battle;
+using RobotDracula.Trainer;
 using RobotDracula.UI;
 using UnityEngine;
 using UniverseLib;
@@ -22,15 +22,12 @@ public class Plugin : BasePlugin
             "interop"
 #endif
         ;
+
     public string UnhollowedModulesFolder => Path.Combine(Paths.BepInExRootPath, IL2CPP_LIBS_FOLDER);
-    
+
     public static ManualLogSource PluginLog;
 
     public static UIBase UiBase { get; private set; }
-    
-    public static bool BattleAutomationEnabled = false;
-
-    private float _completeCooldown;
 
     public Plugin()
     {
@@ -73,18 +70,7 @@ public class Plugin : BasePlugin
     private void UiUpdate()
     {
         UiHelper.Update();
-
-        if (BattleAutomationEnabled)
-        {
-            if (_completeCooldown <= 0f && Singleton<StageController>.Instance.Phase == STAGE_PHASE.WAIT_COMMAND)
-            {
-                BattleHelper.SetToggleToWinRate();
-                BattleHelper.CompleteCommand();
-                _completeCooldown = 1f;
-            }
-
-            if (_completeCooldown > -1f)
-                _completeCooldown -= Time.deltaTime;
-        }
+        
+        TrainerManager.Update();
     }
 }

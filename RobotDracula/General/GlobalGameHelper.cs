@@ -1,13 +1,12 @@
 using Unity.Profiling;
 using UnityEngine;
-using Utils;
 
 namespace RobotDracula.General
 {
     public static class GlobalGameHelper
     {
         public static GlobalGameManager GlobalGameManager => GlobalGameManager.Instance;
-        
+
         public static bool DebugCanvasEnabled
         {
             get => GlobalGameManager.Instance._debugCanvas.enabled;
@@ -32,12 +31,20 @@ namespace RobotDracula.General
 
         public static void StartProfiler()
         {
-            GlobalGameManager._memoryRecorder = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "Total Reserved Memory");
+            GlobalGameManager._memoryRecorder =
+                ProfilerRecorder.StartNew(ProfilerCategory.Memory, "Total Reserved Memory");
         }
 
         public static void StopProfiler()
         {
             GlobalGameManager._memoryRecorder.Stop();
+        }
+
+        public static void DevLogin()
+        {
+            // Currently seems busted on steam.
+            // Haven't tried being logged out when it's called, though.
+            GlobalGameManager.Login_DEV();
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UniverseLib.UI;
+using UniverseLib.UI.Models;
 
 namespace RobotDracula.UI
 {
@@ -10,6 +11,7 @@ namespace RobotDracula.UI
     {
         private static readonly Dictionary<Text, Func<string>> _labelDict = new();
         private static readonly Dictionary<Toggle, Func<bool>> _toggleDict = new();
+        private static readonly Dictionary<Slider, Func<float>> _sliderDict = new();
 
         public static Text CreateLabel(GameObject parent, string name, Func<string> textGetter)
         {
@@ -66,6 +68,13 @@ namespace RobotDracula.UI
             out Text text)
             => CreateToggle(parent, name, defaultText, defaultValue, null, onChangeAction, out toggle, out text);
 
+        public static ButtonRef CreateButton(GameObject parent, string name, string text, Action onClick = null, Color? normalColor = null)
+        {
+            var btn = UIFactory.CreateButton(parent, name, text, normalColor);
+            btn.OnClick = onClick;
+            return btn;
+        }
+        
         public static void Update()
         {
             foreach (var (text, getter) in _labelDict)

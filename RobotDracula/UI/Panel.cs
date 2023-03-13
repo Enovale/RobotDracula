@@ -1,10 +1,11 @@
-using System.Linq;
+using System;
 using Dungeon;
 using Dungeon.Map;
 using Il2CppSystem.Text;
 using RobotDracula.Battle;
 using RobotDracula.Dungeon;
 using RobotDracula.General;
+using RobotDracula.Trainer;
 using UnityEngine;
 using UnityEngine.UI;
 using UniverseLib;
@@ -20,18 +21,28 @@ namespace RobotDracula.UI
 
         public override string Name => "My Panel";
         public override int MinWidth => 280;
-        public override int MinHeight => 400;
+        public override int MinHeight => 450;
         public override Vector2 DefaultAnchorMin => new(0.25f, 0.25f);
         public override Vector2 DefaultAnchorMax => new(0.25f, 0.25f);
         public override bool CanDragAndResize => true;
 
+        private NodeModel _predictedNode;
+
         protected override void ConstructPanelContent()
         {
-            var myToggle2 = UIFactory.CreateToggle(ContentRoot, "myToggle2", out Toggle toggle2, out Text text2);
-            UIFactory.SetLayoutElement(myToggle2.gameObject, flexibleWidth: 200, flexibleHeight: 8);
-            text2.text = "Automate Battle";
-            toggle2.isOn = Plugin.BattleAutomationEnabled;
-            toggle2.onValueChanged.AddListener(val => Plugin.BattleAutomationEnabled = val);
+            UIFactory.CreateLabel(ContentRoot, "automationLabel", "Automate:");
+            var automationRow = UIFactory.CreateUIObject("automationRow", ContentRoot);
+            UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(automationRow, false, false, true, true, 2);
+            UIFactory.SetLayoutElement(automationRow, minHeight: 25, flexibleWidth: 9999);
+            
+            var battleToggle = UiHelper.CreateToggle(automationRow, "battleToggle", "Battle", false, 
+                () => TrainerManager.BattleAutomationEnabled, 
+                b => TrainerManager.BattleAutomationEnabled = b, out _, out _);
+            UIFactory.SetLayoutElement(battleToggle.gameObject, flexibleWidth: 200, flexibleHeight: 8);
+            var dungeonToggle = UiHelper.CreateToggle(automationRow, "dungeon", "Dungeon", false, 
+                () => TrainerManager.DungeonAutomationEnabled, 
+                b => TrainerManager.DungeonAutomationEnabled = b, out _, out _);
+            UIFactory.SetLayoutElement(dungeonToggle.gameObject, flexibleWidth: 200, flexibleHeight: 8);
             
             var myLabel = UiHelper.CreateLabel(ContentRoot, "myLabel",
                 () => $"Current Stage Phase: {BattleHelper.StagePhase}");
@@ -46,25 +57,43 @@ namespace RobotDracula.UI
             var dungeonLabel3 = UiHelper.CreateLabel(dungeonGroup, "dungeonLabel3",
                 () => $"Node:\n{DungeonProgressManager.NodeID}");
             var dungeonLabel4 = UiHelper.CreateLabel(dungeonGroup, "dungeonLabel4",
-                () => $"Previous Node:\n{DungeonProgressManager.PreviousNodeID}");
-            var myBtn = UIFactory.CreateButton(ContentRoot, "myBtn", "Complete Command");
+                () => $"Type:\n{DungeonProgressManager.GetCurrentNodeModel().encounter}");
+            var dungeonLabel5 = UiHelper.CreateLabel(dungeonGroup, "dungeonLabel5",
+                () => $"Result:\n{DungeonProgressManager.GetCurrentNodeResult()}");
+            
+            var predictLabelGroup = UIFactory.CreateUIObject("predictLabelGroup", ContentRoot);
+            UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(predictLabelGroup, false, false, true, true, 2);
+            var predictLabel = UIFactory.CreateLabel(predictLabelGroup, "predictLabel", "Next Node:");
+            UIFactory.SetLayoutElement(predictLabel.gameObject);
+            var predictButton = UiHelper.CreateButton(predictLabelGroup, "predictButton", "↻", () => TrainerManager.GetNextNode());
+            UIFactory.SetLayoutElement(predictButton.GameObject, preferredWidth: 24, preferredHeight: 24);
+            var predictGroup = UIFactory.CreateHorizontalGroup(ContentRoot, "predictGroup", true, false, true, true);
+            var predictLabel1 = UiHelper.CreateLabel(predictGroup, "predictLabel1",
+                () => $"Floor:\n{_predictedNode.floorNumber}");
+            var predictLabel2 = UiHelper.CreateLabel(predictGroup, "predictLabel2",
+                () => $"Sector:\n{_predictedNode.sectorNumber}");
+            var predictLabel3 = UiHelper.CreateLabel(predictGroup, "predictLabel3",
+                () => $"NodeID:\n{_predictedNode.id}");
+            var predictLabel4 = UiHelper.CreateLabel(predictGroup, "predictLabel4",
+                () => $"Type:\n{_predictedNode.encounter}");
+            
+            var myBtn = UiHelper.CreateButton(ContentRoot, "myBtn", "Complete Command", OnCreateCommandClick);
             UIFactory.SetLayoutElement(myBtn.GameObject, flexibleWidth: 200, flexibleHeight: 24);
             myBtn.OnClick = OnCreateCommandClick;
-            var myBtn3 = UIFactory.CreateButton(ContentRoot, "myBtn3", "Win Rate Toggle");
+            var myBtn3 = UiHelper.CreateButton(ContentRoot, "myBtn3", "Win Rate Toggle", OnWinRateToggleClick);
             UIFactory.SetLayoutElement(myBtn3.GameObject, flexibleWidth: 200, flexibleHeight: 24);
-            myBtn3.OnClick = OnWinRateToggleClick;
-            var myBtn4 = UIFactory.CreateButton(ContentRoot, "myBtn4", "Damage Toggle");
+            var myBtn4 = UiHelper.CreateButton(ContentRoot, "myBtn4", "Damage Toggle", OnDamageToggleClick);
             UIFactory.SetLayoutElement(myBtn4.GameObject, flexibleWidth: 200, flexibleHeight: 24);
-            myBtn4.OnClick = OnWinRateToggleClick;
-            var myBtn2 = UIFactory.CreateButton(ContentRoot, "myBtn2", "Click First Adjacent Battle Node");
+            var myBtn2 = UiHelper.CreateButton(ContentRoot, "myBtn2", "Execute Next Encounter", TrainerManager.ExecuteNextEncounter);
             UIFactory.SetLayoutElement(myBtn2.GameObject, flexibleWidth: 200, flexibleHeight: 24);
-            myBtn2.OnClick = AdjacentNodeClick;
-            var recordBtn = UIFactory.CreateButton(ContentRoot, "recordBtn", "Start Profiler");
+            var myBtn6 = UiHelper.CreateButton(ContentRoot, "myBtn6", "Print Dungeon", PrintDungeon);
+            UIFactory.SetLayoutElement(myBtn6.GameObject, flexibleWidth: 200, flexibleHeight: 24);
+            var recordBtn = UiHelper.CreateButton(ContentRoot, "recordBtn", "Start Profiler", GlobalGameHelper.StartProfiler);
             UIFactory.SetLayoutElement(recordBtn.GameObject, flexibleWidth: 200, flexibleHeight: 24);
-            recordBtn.OnClick = GlobalGameHelper.StartProfiler;
-            var recordStopBtn = UIFactory.CreateButton(ContentRoot, "recordStopBtn", "Stop Profiler");
+            var recordStopBtn = UiHelper.CreateButton(ContentRoot, "recordStopBtn", "Stop Profiler", GlobalGameHelper.StopProfiler);
             UIFactory.SetLayoutElement(recordStopBtn.GameObject, flexibleWidth: 200, flexibleHeight: 24);
-            recordStopBtn.OnClick = GlobalGameHelper.StopProfiler;
+            var loginGuestBtn = UiHelper.CreateButton(ContentRoot, "loginGuestBtn", "Dev Guest Login", GlobalGameHelper.DevLogin);
+            UIFactory.SetLayoutElement(loginGuestBtn.GameObject, flexibleWidth: 200, flexibleHeight: 24);
             var timeScaleSlider = UIFactory.CreateSlider(ContentRoot, "timeScaleScrollbar", out var slider);
             UIFactory.SetLayoutElement(timeScaleSlider, minHeight: 25, minWidth: 70, flexibleWidth: 999, flexibleHeight: 0);
             slider.value = 1f;
@@ -76,7 +105,7 @@ namespace RobotDracula.UI
             var toggleRow = UIFactory.CreateUIObject("toggleRow1", ContentRoot);
             UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(toggleRow, false, false, true, true, 2);
             UIFactory.SetLayoutElement(toggleRow, minHeight: 25, flexibleWidth: 9999);
-            ;
+            
             var myToggle = UiHelper.CreateToggle(toggleRow, "myToggle", "Move Cheat", false, val => DungeonHelper.MapManager._canMoveCheat = val, out _, out _);
             UIFactory.SetLayoutElement(myToggle, minHeight: 25, flexibleWidth: 9999);
             var myToggle3 = UiHelper.CreateToggle(toggleRow, "myToggle2", "Debug View", false, 
@@ -85,7 +114,34 @@ namespace RobotDracula.UI
             UIFactory.SetLayoutElement(myToggle3, minHeight: 25, flexibleWidth: 9999);
         }
 
-        private void AdjacentNodeClick()
+        public override void Update()
+        {
+            try
+            {
+                _predictedNode = TrainerManager.GetNextNode();
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+
+        private void OnWinRateToggleClick()
+        {
+            BattleHelper.SetToggleToWinRate();
+        }
+
+        private void OnDamageToggleClick()
+        {
+            BattleHelper.SetToggleToDamage();
+        }
+
+        private void OnCreateCommandClick()
+        {
+            BattleHelper.CompleteCommand();
+        }
+
+        private void PrintDungeon()
         {
             // Gets every node in the entire dungeon
             var next = DungeonHelper.MirrorMapManager._nodesByFloor;
@@ -100,58 +156,6 @@ namespace RobotDracula.UI
                 }
             }
             Plugin.PluginLog.LogWarning(strb.ToString());
-
-            // Filters down to our current sector
-            var thisFloor = next[DungeonProgressManager.FloorNumber].ToArray();
-            var nextSector = thisFloor.Where(n => n.sectorNumber == DungeonProgressManager.SectorNumber + 1);
-
-            var current = DungeonHelper.MirrorMapManager.GetCurrentNode();
-            NodeModel chosenNode = null;
-            foreach (var nodeInfo in nextSector)
-            {
-                if (chosenNode != null)
-                    break;
-                
-                // Get the first node that isn't an event
-                if (nodeInfo.IsBattleNode())
-                {
-                    // Gets the nodemodel in a faster way than asking the NodeUI
-                    chosenNode = DungeonHelper.MirrorMapManager._nodeDictionary[nodeInfo.nodeId].NodeModel;
-                    
-                    // Makes sure we can travel to that node validly
-                    if (!DungeonHelper.MirrorMapManager.IsValidNode(current, chosenNode))
-                    {
-                        chosenNode = null;
-                    }
-                }
-            }
-
-            if (chosenNode is null)
-            {
-                Plugin.PluginLog.LogError("No available nodes to progress to :(");
-                return;
-            }
-
-            // Move the train and open the Enter panel (not required)
-            DungeonHelper.MirrorMapManager.TryUpdatePlayerPosition(chosenNode);
-            
-            // Actually enters the encounter
-            // NOTE: there needs to be a valid path or the server will not allow you to advance after encounter
-            DungeonHelper.MirrorMapManager._encounterManager.ExecuteEncounter(chosenNode);
-        }
-
-        public override void Update()
-        {
-        }
-
-        private void OnWinRateToggleClick()
-        {
-            BattleHelper.SetToggleToWinRate();
-        }
-
-        private void OnCreateCommandClick()
-        {
-            BattleHelper.CompleteCommand();
         }
     }
 }

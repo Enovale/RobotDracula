@@ -37,6 +37,12 @@ namespace RobotDracula.Battle
             if (_autoSelectManager is not null && !_autoSelectManager.toggle_winRate.isOn)
                 _autoSelectManager.SetWinRateToggle(true);
         }
+
+        public static void SetToggleToDamage()
+        {
+            if (_autoSelectManager is not null && !_autoSelectManager.toggle_damage.isOn)
+                _autoSelectManager.SetDamageToggle(true);
+        }
         
         public static void CompleteCommand()
         {
