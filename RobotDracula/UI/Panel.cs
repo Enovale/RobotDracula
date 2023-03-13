@@ -1,5 +1,6 @@
 using System.Linq;
 using Dungeon;
+using Dungeon.Map;
 using Il2CppSystem.Text;
 using RobotDracula.Battle;
 using RobotDracula.Dungeon;
@@ -66,7 +67,6 @@ namespace RobotDracula.UI
 
         private void AdjacentNodeClick()
         {
-            var current = DungeonHelper.MirrorMapManager.GetCurrentNode();
             // Gets every node in the entire dungeon
             var next = DungeonHelper.MirrorMapManager._nodesByFloor;
 
@@ -83,19 +83,35 @@ namespace RobotDracula.UI
 
             // Filters down to our current sector
             var thisFloor = next[DungeonProgressManager.FloorNumber].ToArray();
-            var thisSector = thisFloor.Where(n => n.sectorNumber == DungeonProgressManager.SectorNumber + 1);
-            
-            // Get the first node that isn't an event (does not check if theres a valid path to that node)
-            // NOTE: there needs to be a valid path or the server will not allow you to advance after encounter
-            var node = thisSector.FirstOrDefault(n => n.IsBattleNode(), null);
-            // Gets the nodemodel in a faster way than asking the NodeUI
-            var nodeModel = DungeonHelper.MirrorMapManager._nodeDictionary[node.nodeId].NodeModel;
-            
+            var nextSector = thisFloor.Where(n => n.sectorNumber == DungeonProgressManager.SectorNumber + 1);
+
+            NodeModel chosenNode = null;
+            foreach (var nodeInfo in nextSector)
+            {
+                if (chosenNode != null)
+                    break;
+                
+                // Get the first node that isn't an event
+                if (nodeInfo.IsBattleNode())
+                {
+                    // Gets the nodemodel in a faster way than asking the NodeUI
+                    chosenNode = DungeonHelper.MirrorMapManager._nodeDictionary[nodeInfo.nodeId].NodeModel;
+                    
+                    // Makes sure we can travel to that node validly
+                    if (!DungeonHelper.MirrorMapManager.IsValidNode(DungeonHelper.MirrorMapManager.GetCurrentNode(),
+                            chosenNode))
+                    {
+                        chosenNode = null;
+                    }
+                }
+            }
+
             // Move the train and open the Enter panel (not required)
-            //DungeonHelper.MirrorMapManager.TryUpdatePlayerPosition(nodeModel);
+            //DungeonHelper.MirrorMapManager.TryUpdatePlayerPosition(chosenNode);
             
             // Actually enters the encounter
-            DungeonHelper.MirrorMapManager._encounterManager.ExecuteEncounter(nodeModel);
+            // NOTE: there needs to be a valid path or the server will not allow you to advance after encounter
+            DungeonHelper.MirrorMapManager._encounterManager.ExecuteEncounter(chosenNode);
         }
 
         public override void Update()
