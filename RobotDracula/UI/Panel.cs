@@ -4,6 +4,7 @@ using Dungeon.Map;
 using Il2CppSystem.Text;
 using RobotDracula.Battle;
 using RobotDracula.Dungeon;
+using RobotDracula.General;
 using UnityEngine;
 using UnityEngine.UI;
 using UniverseLib;
@@ -58,11 +59,30 @@ namespace RobotDracula.UI
             var myBtn2 = UIFactory.CreateButton(ContentRoot, "myBtn2", "Click First Adjacent Battle Node");
             UIFactory.SetLayoutElement(myBtn2.GameObject, flexibleWidth: 200, flexibleHeight: 24);
             myBtn2.OnClick = AdjacentNodeClick;
-            var myToggle = UIFactory.CreateToggle(ContentRoot, "myToggle", out var toggle, out var text);
-            UIFactory.SetLayoutElement(myToggle.gameObject, flexibleWidth: 200, flexibleHeight: 8);
-            text.text = "Move Cheat";
-            toggle.isOn = false;
-            toggle.onValueChanged.AddListener(val => DungeonHelper.MapManager._canMoveCheat = val);
+            var recordBtn = UIFactory.CreateButton(ContentRoot, "recordBtn", "Start Profiler");
+            UIFactory.SetLayoutElement(recordBtn.GameObject, flexibleWidth: 200, flexibleHeight: 24);
+            recordBtn.OnClick = GlobalGameHelper.StartProfiler;
+            var recordStopBtn = UIFactory.CreateButton(ContentRoot, "recordStopBtn", "Stop Profiler");
+            UIFactory.SetLayoutElement(recordStopBtn.GameObject, flexibleWidth: 200, flexibleHeight: 24);
+            recordStopBtn.OnClick = GlobalGameHelper.StopProfiler;
+            var timeScaleSlider = UIFactory.CreateSlider(ContentRoot, "timeScaleScrollbar", out var slider);
+            UIFactory.SetLayoutElement(timeScaleSlider, minHeight: 25, minWidth: 70, flexibleWidth: 999, flexibleHeight: 0);
+            slider.value = 1f;
+            slider.maxValue = 10f;
+            slider.minValue = 0f;
+            slider.onValueChanged.AddListener(f => GlobalGameHelper.TimeScale = f);
+            var timeScaleLabel = UiHelper.CreateLabel(ContentRoot, "timeScaleLabel", () => $"Timescale: {slider.value}");
+            
+            var toggleRow = UIFactory.CreateUIObject("toggleRow1", ContentRoot);
+            UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(toggleRow, false, false, true, true, 2);
+            UIFactory.SetLayoutElement(toggleRow, minHeight: 25, flexibleWidth: 9999);
+            ;
+            var myToggle = UiHelper.CreateToggle(toggleRow, "myToggle", "Move Cheat", false, val => DungeonHelper.MapManager._canMoveCheat = val, out _, out _);
+            UIFactory.SetLayoutElement(myToggle, minHeight: 25, flexibleWidth: 9999);
+            var myToggle3 = UiHelper.CreateToggle(toggleRow, "myToggle2", "Debug View", false, 
+                () => GlobalGameHelper.DebugCanvasEnabled, 
+                val => GlobalGameHelper.DebugCanvasEnabled = val, out _, out _);
+            UIFactory.SetLayoutElement(myToggle3, minHeight: 25, flexibleWidth: 9999);
         }
 
         private void AdjacentNodeClick()
@@ -85,6 +105,7 @@ namespace RobotDracula.UI
             var thisFloor = next[DungeonProgressManager.FloorNumber].ToArray();
             var nextSector = thisFloor.Where(n => n.sectorNumber == DungeonProgressManager.SectorNumber + 1);
 
+            var current = DungeonHelper.MirrorMapManager.GetCurrentNode();
             NodeModel chosenNode = null;
             foreach (var nodeInfo in nextSector)
             {
@@ -98,8 +119,7 @@ namespace RobotDracula.UI
                     chosenNode = DungeonHelper.MirrorMapManager._nodeDictionary[nodeInfo.nodeId].NodeModel;
                     
                     // Makes sure we can travel to that node validly
-                    if (!DungeonHelper.MirrorMapManager.IsValidNode(DungeonHelper.MirrorMapManager.GetCurrentNode(),
-                            chosenNode))
+                    if (!DungeonHelper.MirrorMapManager.IsValidNode(current, chosenNode))
                     {
                         chosenNode = null;
                     }
@@ -113,7 +133,7 @@ namespace RobotDracula.UI
             }
 
             // Move the train and open the Enter panel (not required)
-            //DungeonHelper.MirrorMapManager.TryUpdatePlayerPosition(chosenNode);
+            DungeonHelper.MirrorMapManager.TryUpdatePlayerPosition(chosenNode);
             
             // Actually enters the encounter
             // NOTE: there needs to be a valid path or the server will not allow you to advance after encounter
