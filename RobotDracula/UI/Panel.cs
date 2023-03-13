@@ -1,11 +1,9 @@
-using System;
+using System.Linq;
 using Dungeon;
-using Il2CppSystem.Collections.Generic;
-using Dungeon.Map;
+using Il2CppSystem.Text;
 using RobotDracula.Battle;
 using RobotDracula.Dungeon;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 using UniverseLib;
 using UniverseLib.UI;
@@ -27,12 +25,18 @@ namespace RobotDracula.UI
 
         protected override void ConstructPanelContent()
         {
+            var myToggle2 = UIFactory.CreateToggle(ContentRoot, "myToggle2", out Toggle toggle2, out Text text2);
+            UIFactory.SetLayoutElement(myToggle2.gameObject, flexibleWidth: 200, flexibleHeight: 8);
+            text2.text = "Automate Battle";
+            toggle2.isOn = Plugin.BattleAutomationEnabled;
+            toggle2.onValueChanged.AddListener(val => Plugin.BattleAutomationEnabled = val);
+            
             var myLabel = UiHelper.CreateLabel(ContentRoot, "myLabel",
                 () => $"Current Stage Phase: {BattleHelper.StagePhase}");
             UIFactory.SetLayoutElement(myLabel.gameObject);
             var dungeonLabel = UIFactory.CreateLabel(ContentRoot, "dungeonLabel", "Dungeon Info:");
             UIFactory.SetLayoutElement(dungeonLabel.gameObject);
-            var dungeonGroup = UIFactory.CreateHorizontalGroup(ContentRoot, "dungeonGroup", false, false, true, true);
+            var dungeonGroup = UIFactory.CreateHorizontalGroup(ContentRoot, "dungeonGroup", true, false, true, true);
             var dungeonLabel1 = UiHelper.CreateLabel(dungeonGroup, "dungeonLabel1",
                 () => $"Floor:\n{DungeonProgressManager.FloorNumber}");
             var dungeonLabel2 = UiHelper.CreateLabel(dungeonGroup, "dungeonLabel2",
@@ -50,60 +54,48 @@ namespace RobotDracula.UI
             var myBtn4 = UIFactory.CreateButton(ContentRoot, "myBtn4", "Damage Toggle");
             UIFactory.SetLayoutElement(myBtn4.GameObject, flexibleWidth: 200, flexibleHeight: 24);
             myBtn4.OnClick = OnWinRateToggleClick;
-            var myBtn2 = UIFactory.CreateButton(ContentRoot, "myBtn2", "Click First Adjacent Node");
+            var myBtn2 = UIFactory.CreateButton(ContentRoot, "myBtn2", "Click First Adjacent Battle Node");
             UIFactory.SetLayoutElement(myBtn2.GameObject, flexibleWidth: 200, flexibleHeight: 24);
             myBtn2.OnClick = AdjacentNodeClick;
-            var myBtn5 = UIFactory.CreateButton(ContentRoot, "myBtn5", "Click Current Node");
-            UIFactory.SetLayoutElement(myBtn5.GameObject, flexibleWidth: 200, flexibleHeight: 24);
-            myBtn5.OnClick = CurrentNodeClick;
-            var myBtn6 = UIFactory.CreateButton(ContentRoot, "myBtn6", "Click Random Node In Next Sector");
-            UIFactory.SetLayoutElement(myBtn6.GameObject, flexibleWidth: 200, flexibleHeight: 24);
-            myBtn6.OnClick = RandomNodeClick;
-            var myToggle = UIFactory.CreateToggle(ContentRoot, "myToggle", out Toggle toggle, out Text text);
+            var myToggle = UIFactory.CreateToggle(ContentRoot, "myToggle", out var toggle, out var text);
             UIFactory.SetLayoutElement(myToggle.gameObject, flexibleWidth: 200, flexibleHeight: 8);
             text.text = "Move Cheat";
-            //toggle.isOn = DungeonHelper.MapManager._canMoveCheat;
+            toggle.isOn = false;
             toggle.onValueChanged.AddListener(val => DungeonHelper.MapManager._canMoveCheat = val);
-        }
-
-        private void RandomNodeClick()
-        {
-            var dungeon = DungeonHelper.MapManager._dungeonModel;
-            if (dungeon is null)
-            {
-                Plugin.PluginLog.LogError("Dungeon was null");
-                return;
-            }
-            var sectorId = DungeonProgressManager.SectorNumber + 1;
-            var sector = dungeon.sectors[DungeonProgressManager.FloorNumber][sectorId];
-            if (sector == null)
-            {
-                Plugin.PluginLog.LogError("Sector was null");
-                return;
-            }
-            var node = sector.GetNodeByIndex(0);
-            if (node == null)
-            {
-                Plugin.PluginLog.LogError("Node was null");
-                return;
-            }
-            DungeonHelper.MapManager.TryUpdatePlayerPosition(node);
-            //DungeonHelper.MapManager._encounterManager.ExecuteEncounter(node);
-        }
-
-        private void CurrentNodeClick()
-        {
-            DungeonHelper.MapManager.TryUpdatePlayerPosition(DungeonHelper.MapManager.GetCurrentNode());
-            DungeonHelper.DungeonManager.OpenCurrentEventNode();
-            //DungeonHelper.MapManager._encounterManager.ExecuteEncounter(DungeonHelper.MapManager.GetCurrentNode());
         }
 
         private void AdjacentNodeClick()
         {
-            var node = DungeonHelper.NodeUiManager
-                .FindNodeUI(DungeonHelper.CurrentAdjacentNodes.ToArray()[0].NodeId).GetNodeModel();
-            DungeonHelper.MapManager.TryUpdatePlayerPosition(node);
-            DungeonHelper.MapManager._encounterManager.ExecuteEncounter(node);
+            var current = DungeonHelper.MirrorMapManager.GetCurrentNode();
+            // Gets every node in the entire dungeon
+            var next = DungeonHelper.MirrorMapManager._nodesByFloor;
+
+            // Prints out all of said nodes (throws errors lol but dw about that)
+            var strb = new StringBuilder();
+            foreach (var f in next.Values)
+            {
+                foreach (var nodeInfo in f)
+                {
+                    strb.Append($"\n[NODE {nodeInfo.nodeId}]: Type: {nodeInfo.GetEncounterType()} Floor: {nodeInfo.floorNumber} Sector: {nodeInfo.sectorNumber} Encounter ID: {nodeInfo.encounterId}");
+                }
+            }
+            Plugin.PluginLog.LogWarning(strb.ToString());
+
+            // Filters down to our current sector
+            var thisFloor = next[DungeonProgressManager.FloorNumber].ToArray();
+            var thisSector = thisFloor.Where(n => n.sectorNumber == DungeonProgressManager.SectorNumber + 1);
+            
+            // Get the first node that isn't an event (does not check if theres a valid path to that node)
+            // NOTE: there needs to be a valid path or the server will not allow you to advance after encounter
+            var node = thisSector.FirstOrDefault(n => n.IsBattleNode(), null);
+            // Gets the nodemodel in a faster way than asking the NodeUI
+            var nodeModel = DungeonHelper.MirrorMapManager._nodeDictionary[node.nodeId].NodeModel;
+            
+            // Move the train and open the Enter panel (not required)
+            //DungeonHelper.MirrorMapManager.TryUpdatePlayerPosition(nodeModel);
+            
+            // Actually enters the encounter
+            DungeonHelper.MirrorMapManager._encounterManager.ExecuteEncounter(nodeModel);
         }
 
         public override void Update()

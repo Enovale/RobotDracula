@@ -27,6 +27,8 @@ public class Plugin : BasePlugin
     public static ManualLogSource PluginLog;
 
     public static UIBase UiBase { get; private set; }
+    
+    public static bool BattleAutomationEnabled = false;
 
     private float _completeCooldown;
 
@@ -42,6 +44,7 @@ public class Plugin : BasePlugin
 
         Universe.Init(5f, OnInitialized, UniverseLog, new UniverseLibConfig()
         {
+            Disable_EventSystem_Override = true,
             Force_Unlock_Mouse = true,
             Unhollowed_Modules_Folder = UnhollowedModulesFolder
         });
@@ -70,15 +73,18 @@ public class Plugin : BasePlugin
     private void UiUpdate()
     {
         UiHelper.Update();
-        
-        if (_completeCooldown <= 0f && Singleton<StageController>.Instance.Phase == STAGE_PHASE.WAIT_COMMAND)
-        {
-            BattleHelper.SetToggleToWinRate();
-            BattleHelper.CompleteCommand();
-            _completeCooldown = 1f;
-        }
 
-        if (_completeCooldown > -1f)
-            _completeCooldown -= Time.deltaTime;
+        if (BattleAutomationEnabled)
+        {
+            if (_completeCooldown <= 0f && Singleton<StageController>.Instance.Phase == STAGE_PHASE.WAIT_COMMAND)
+            {
+                BattleHelper.SetToggleToWinRate();
+                BattleHelper.CompleteCommand();
+                _completeCooldown = 1f;
+            }
+
+            if (_completeCooldown > -1f)
+                _completeCooldown -= Time.deltaTime;
+        }
     }
 }
