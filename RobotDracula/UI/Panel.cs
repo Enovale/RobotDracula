@@ -106,6 +106,12 @@ namespace RobotDracula.UI
                 }
             }
 
+            if (chosenNode is null)
+            {
+                Plugin.PluginLog.LogError("No available nodes to progress to :(");
+                return;
+            }
+
             // Move the train and open the Enter panel (not required)
             //DungeonHelper.MirrorMapManager.TryUpdatePlayerPosition(chosenNode);
             
