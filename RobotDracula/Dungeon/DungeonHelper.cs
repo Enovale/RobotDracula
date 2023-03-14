@@ -26,6 +26,30 @@ namespace RobotDracula.Dungeon
         public static NodeModel CurrentNodeModel
             => MapManager.GetCurrentNode();
 
+        private static int _cachedNodeId;
+
+        private static NodeModel _cachedNodeModel;
+
+        public static NodeModel CachedCurrentNodeModel
+        {
+            get
+            {
+                var nodeId = DungeonProgressHelper.NodeID;
+
+                if (nodeId == -1)
+                    return null;
+
+                if (_cachedNodeId != nodeId)
+                {
+                    _cachedNodeId = nodeId;
+
+                    _cachedNodeModel = CurrentNodeModel;
+                }
+
+                return _cachedNodeModel;
+            }
+        }
+
         public static NodeUI CurrentNodeUI
             => NodeUiManager.FindNodeUI(CurrentNodeModel.id);
 

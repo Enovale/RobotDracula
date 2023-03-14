@@ -29,6 +29,9 @@ namespace RobotDracula.General
             }
         }
 
+        public static SCENE_STATE SceneState
+            => GlobalGameManager.sceneState;
+
         public static void StartProfiler()
         {
             GlobalGameManager._memoryRecorder =

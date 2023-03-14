@@ -53,7 +53,9 @@ namespace RobotDracula.UI
                 _toggleDict.Add(toggle, valueGetter);
 
             if (onChangeAction is not null)
+            {
                 toggle.onValueChanged.AddListener(onChangeAction);
+            }
 
             return toggleGO;
         }
@@ -81,7 +83,10 @@ namespace RobotDracula.UI
             {
                 try
                 {
-                    text.text = getter.Invoke();
+                    var newTxt = getter.Invoke();
+                    
+                    if (text.text != newTxt)
+                        text.text = newTxt;
                 }
                 catch (Exception)
                 {
@@ -93,12 +98,16 @@ namespace RobotDracula.UI
             {
                 try
                 {
-                    toggle.isOn = getter.Invoke();
-                    toggle.interactable = true;
+                    var newIsOn = getter.Invoke();
+                    
+                    if (toggle.isOn != newIsOn)
+                        toggle.isOn = newIsOn;
+                    
+                    if (!toggle.interactable)
+                        toggle.interactable = true;
                 }
                 catch (Exception)
                 {
-                    toggle.isOn = false;
                     toggle.interactable = false;
                 }
             }

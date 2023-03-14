@@ -2,13 +2,14 @@
 using BepInEx;
 using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
+using Il2CppInterop.Runtime.Injection;
 using Il2CppSystem.IO;
-using RobotDracula.Trainer;
 using RobotDracula.UI;
 using UnityEngine;
 using UniverseLib;
 using UniverseLib.Config;
 using UniverseLib.UI;
+using Object = UnityEngine.Object;
 
 namespace RobotDracula;
 
@@ -28,6 +29,20 @@ public class Plugin : BasePlugin
     public static ManualLogSource PluginLog;
 
     public static UIBase UiBase { get; private set; }
+    
+    public static GameObject UIRoot => UiBase?.RootObject;
+    
+    public static bool ShowTrainer
+    {
+        get => UiBase is { Enabled: true };
+        set
+        {
+            if (UiBase == null || !UIRoot || UiBase.Enabled == value)
+                return;
+
+            UniversalUI.SetUIActive(MyPluginInfo.PLUGIN_GUID, value);
+        }
+    }
 
     public Plugin()
     {
@@ -62,6 +77,12 @@ public class Plugin : BasePlugin
 
     private void OnInitialized()
     {
+        ClassInjector.RegisterTypeInIl2Cpp<PluginBootstrap>();
+        
+        var bootstrap = new GameObject("draculaBootstrap");
+        bootstrap.AddComponent<PluginBootstrap>();
+        Object.DontDestroyOnLoad(bootstrap);
+        
         UiBase = UniversalUI.RegisterUI(MyPluginInfo.PLUGIN_GUID, UiUpdate);
         UiBase.SetOnTop();
         var panel = new Panel(UiBase);
@@ -69,8 +90,5 @@ public class Plugin : BasePlugin
 
     private void UiUpdate()
     {
-        UiHelper.Update();
-        
-        TrainerManager.Update();
     }
 }
