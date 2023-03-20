@@ -1,9 +1,13 @@
 using System.Linq;
 using Dungeon;
 using Dungeon.Map;
+using Dungeon.Mirror;
+using Dungeon.Mirror.Data;
 using Dungeon.Mirror.Map.UI;
+using Il2CppSystem;
 using Il2CppSystem.Collections.Generic;
 using LocalSave;
+using MainUI;
 using RobotDracula.Battle;
 using RobotDracula.Dungeon;
 using RobotDracula.General;
@@ -73,6 +77,72 @@ namespace RobotDracula.Trainer
                         _advanceCooldown -= Time.fixedDeltaTime;
                 }
             }
+        }
+
+        public static void DoCharacterLevelUps()
+        {
+            MirrorDungeonLevelUpPopup levelUpView =
+                DungeonHelper.MirrorDungeonManager._stageRewardManager._characterLevelUpView;
+            int numLevelUps = levelUpView._levelUpCount;
+            List<MirrorDungeonLevelUpData> PotentialLevelUps = levelUpView._levelUpDataList;
+            System.Collections.Generic.List<MirrorDungeonLevelUpData> data =
+                PotentialLevelUps.ToArray().ToList().OrderByDescending(a => a.NextLevel).ToList();
+            //OpenConfirmView(LevelUpData)
+            //ConfirmView.FinishLevelUP
+            //smth with egos and shit in the middle.
+            for (int i = 0; i < numLevelUps; i++)
+            {
+                MirrorDungeonLevelUpData charToLevel = data[i];
+                levelUpView.OpenConfirmView(charToLevel);
+                UIScrollViewItem<Ego>[] potentialEgos =
+                    levelUpView._confirmView._switchPanel.EgoScrollView._itemList._items;
+                switch (potentialEgos.Length)
+                {
+                    case 0:
+                        levelUpView._confirmView.FinishLevelUp();
+                        break;
+                    default:
+                        levelUpView._confirmView._switchPanel.EgoScrollView.OnSelect(potentialEgos[0], false);
+                        levelUpView._confirmView.FinishLevelUp();
+                        break;
+                }
+            }
+        }
+
+        public static void tryDoOneLevelUp()
+        {
+            MirrorDungeonLevelUpPopup levelUpView =
+                DungeonHelper.MirrorDungeonManager._stageRewardManager._characterLevelUpView;
+            if (!levelUpView.isActiveAndEnabled)
+            {
+                // u clicked the btn too early ya stinkin idiot
+                return;
+            }
+
+            int numLevelUps = levelUpView._levelUpCount;
+            Plugin.PluginLog.LogInfo(numLevelUps);
+            List<MirrorDungeonLevelUpData> PotentialLevelUps = levelUpView._levelUpDataList;
+            System.Collections.Generic.List<MirrorDungeonLevelUpData> data =
+                PotentialLevelUps.ToArray().ToList().OrderByDescending(a => a.NextLevel).ToList();
+            MirrorDungeonLevelUpData test = data[0];
+            levelUpView.OpenConfirmView(test);
+            levelUpView._confirmView.btn_confirm.OnClick(false);
+            levelUpView._confirmView.OpenSetEgoPanel();
+            UIScrollViewItem<Ego>[] potentialEgos =
+                levelUpView._confirmView._switchPanel.EgoScrollView._itemList._items;
+            Plugin.PluginLog.LogInfo(levelUpView._confirmView._switchPanel.EgoScrollView._itemList._size);
+            Plugin.PluginLog.LogInfo(potentialEgos.Length);
+            int calculatedLength = 0;
+            for (int i = 0; i < potentialEgos.Length; i++)
+            {
+                if (potentialEgos[i]._data == null) break;
+                calculatedLength++;
+            }
+            Plugin.PluginLog.LogInfo(calculatedLength);
+            if(calculatedLength > 0)levelUpView._confirmView._switchPanel.EgoScrollView.OnSelect(potentialEgos[0], false);
+            levelUpView._confirmView.FinishLevelUp();
+            //levelUpView._confirmView.UpdateConfirmedData();
+            //levelUpView._confirmView.btn_close.OnClick(false);
         }
 
         public static void ExecuteNextEncounter()

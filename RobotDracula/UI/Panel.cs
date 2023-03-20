@@ -126,6 +126,15 @@ namespace RobotDracula.UI
             var loginGuestBtn = UiHelper.CreateButton(ContentRoot, "loginGuestBtn", "Dev Guest Login",
                 GlobalGameHelper.DevLogin);
             UIFactory.SetLayoutElement(loginGuestBtn.GameObject, flexibleWidth: 200, flexibleHeight: 24);
+            //var tryGetEnemyDataBtn = UiHelper.CreateButton(ContentRoot, "fetchDataBtn", "Try to fetch enemy data",
+            //StaticDataHelper.TryGetEnemyData);
+            //UIFactory.SetLayoutElement(tryGetEnemyDataBtn.GameObject, flexibleWidth: 200, flexibleHeight: 24);
+            //var tryGetAbnoDataBtn = UiHelper.CreateButton(ContentRoot, "fetchDataBtn2i", "Try to fetch abnormality data",
+            //                StaticDataHelper.TryGetAbnoData);
+            //UIFactory.SetLayoutElement(tryGetAbnoDataBtn.GameObject, flexibleWidth: 200, flexibleHeight: 24);
+            var tryDoLevelUpBtn = UiHelper.CreateButton(ContentRoot, "tryLevelBtn", "Test level-ups pt.1",
+                TrainerManager.tryDoOneLevelUp);
+            UIFactory.SetLayoutElement(tryDoLevelUpBtn.GameObject, flexibleWidth: 200, flexibleHeight: 24);
             var timeScaleSlider = UIFactory.CreateSlider(ContentRoot, "timeScaleScrollbar", out var slider);
             UIFactory.SetLayoutElement(timeScaleSlider, minHeight: 25, minWidth: 70, flexibleWidth: 999,
                 flexibleHeight: 0);
