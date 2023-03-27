@@ -16,7 +16,7 @@ namespace RobotDracula.Dungeon
 
         public static MapManager MapManager
             => DungeonManager.MapManager;
-
+        
         public static MirrorDungeonMapManager MirrorMapManager
             => MirrorDungeonManager.MirrorMapManager;
 

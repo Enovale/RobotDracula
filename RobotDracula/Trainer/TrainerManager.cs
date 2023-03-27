@@ -22,6 +22,8 @@ namespace RobotDracula.Trainer
 
         public static bool DungeonAutomationEnabled = false;
 
+        public static bool DungeonLevelUpAutomationEnabled = false;
+
         public static bool FPSCapEnabled = true;
 
         public static NodeModel NextChosenNode;
@@ -29,6 +31,8 @@ namespace RobotDracula.Trainer
         private static float _completeCooldown;
 
         private static float _advanceCooldown;
+
+        private static bool _waitingForLevelUpResponse = false;
 
         private static Dictionary<int, MirrorDungeonNodeUI> _nodeDict
             => DungeonHelper.MirrorMapManager._nodeDictionary;
@@ -61,6 +65,22 @@ namespace RobotDracula.Trainer
             {
                 if (GlobalGameManager.Instance.CheckSceneState(SCENE_STATE.MirrorDungeon) && NextChosenNode == null)
                 {
+                    if (DungeonHelper.MirrorDungeonManager.StageReward._characterLevelUpView != null)
+                    {
+                        MirrorDungeonLevelUpPopup levelUpView =
+                            DungeonHelper.MirrorDungeonManager.StageReward._characterLevelUpView;
+                        if (levelUpView.isActiveAndEnabled && _waitingForLevelUpResponse)
+                        {
+                            if (levelUpView._confirmView._switchPanel._isOpened == false)
+                            {
+                                levelUpView._confirmView.btn_close.OnClick(false);
+                                _waitingForLevelUpResponse = false;
+                            }
+                        }
+
+                        return;
+                    }
+
                     var result = DungeonProgressHelper.CurrentNodeResult;
                     if (_advanceCooldown <= 0f && (
                             (!SingletonBehavior<DungeonFormationPanel>.Instance.gameObject.active &&
@@ -76,6 +96,10 @@ namespace RobotDracula.Trainer
                     if (_advanceCooldown > -1f)
                         _advanceCooldown -= Time.fixedDeltaTime;
                 }
+            }
+
+            if (DungeonLevelUpAutomationEnabled)
+            {
             }
         }
 
@@ -113,7 +137,7 @@ namespace RobotDracula.Trainer
         {
             MirrorDungeonLevelUpPopup levelUpView =
                 DungeonHelper.MirrorDungeonManager._stageRewardManager._characterLevelUpView;
-            if (!levelUpView.isActiveAndEnabled)
+            if (!levelUpView.isActiveAndEnabled || _waitingForLevelUpResponse)
             {
                 // u clicked the btn too early ya stinkin idiot
                 return;
@@ -138,9 +162,12 @@ namespace RobotDracula.Trainer
                 if (potentialEgos[i]._data == null) break;
                 calculatedLength++;
             }
+
             Plugin.PluginLog.LogInfo(calculatedLength);
-            if(calculatedLength > 0)levelUpView._confirmView._switchPanel.EgoScrollView.OnSelect(potentialEgos[0], false);
+            if (calculatedLength > 0)
+                levelUpView._confirmView._switchPanel.EgoScrollView.OnSelect(potentialEgos[0], false);
             levelUpView._confirmView.FinishLevelUp();
+            _waitingForLevelUpResponse = true;
             //levelUpView._confirmView.UpdateConfirmedData();
             //levelUpView._confirmView.btn_close.OnClick(false);
         }
