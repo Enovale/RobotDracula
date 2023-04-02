@@ -1,10 +1,13 @@
 using BattleUI;
 using BattleUI.Operation;
+using RobotDracula.Trainer;
+using UnityEngine;
 
 namespace RobotDracula.Battle
 {
     public static class BattleHelper
     {
+        private static float doActionCooldown = 0f;
         private static BattleUIRoot _uiRoot => SingletonBehavior<BattleUIRoot>.Instance;
         
         private static NewOperationController _controller
@@ -31,6 +34,23 @@ namespace RobotDracula.Battle
         }
         
         public static STAGE_PHASE StagePhase => Singleton<StageController>.Instance.Phase;
+
+        static BattleHelper()
+        {
+            TrainerManager.BattleUpdate += HandleBattleAutomation;
+        }
+
+        public static void HandleBattleAutomation()
+        {
+            if (doActionCooldown <= 0)
+            {
+                SetToggleToWinRate();
+                CompleteCommand();
+                doActionCooldown = 5f;
+            }
+
+            doActionCooldown -= Time.fixedDeltaTime;
+        }
 
         public static void SetToggleToWinRate()
         {

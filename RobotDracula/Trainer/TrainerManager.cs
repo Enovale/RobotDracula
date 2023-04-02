@@ -28,6 +28,18 @@ namespace RobotDracula.Trainer
 
         public static NodeModel NextChosenNode;
 
+        public delegate void BattleUpdateEventHandler();
+
+        public static event BattleUpdateEventHandler BattleUpdate;
+
+        public delegate void MirrorLevelUpRewardEventHandler();
+
+        public static event MirrorLevelUpRewardEventHandler LevelUpUpdate;
+
+        public delegate void MirrorDungeonMapEventHandler();
+
+        public static event MirrorDungeonMapEventHandler MirrorDungeonMapUpdate;
+
         private static float _completeCooldown;
 
         private static float _advanceCooldown;
@@ -41,6 +53,29 @@ namespace RobotDracula.Trainer
             => DungeonHelper.MirrorMapManager._nodesByFloor[DungeonProgressManager.FloorNumber];
 
         public static void Update()
+        {
+            if (BattleAutomationEnabled && Singleton<StageController>.Instance.Phase == STAGE_PHASE.WAIT_COMMAND)
+            {
+                BattleUpdate?.Invoke();
+            }
+
+            if (DungeonAutomationEnabled)
+            {
+                if (GlobalGameManager.Instance.CheckSceneState(SCENE_STATE.MirrorDungeon))
+                {
+                    if (DungeonHelper.MirrorDungeonManager.StageReward._characterLevelUpView != null)
+                    {
+                        LevelUpUpdate?.Invoke();
+                    }
+                    else 
+                    {
+                       MirrorDungeonMapUpdate?.Invoke(); 
+                    }
+                }
+            }
+        }
+
+        /*public static void Update()
         {
             if (!FPSCapEnabled && Application.targetFrameRate != -1)
                 Application.targetFrameRate = -1;
@@ -101,7 +136,7 @@ namespace RobotDracula.Trainer
             if (DungeonLevelUpAutomationEnabled)
             {
             }
-        }
+        }*/
 
         public static void DoCharacterLevelUps()
         {
