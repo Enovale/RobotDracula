@@ -132,6 +132,9 @@ namespace RobotDracula.UI
             var tryGetAbnoDataBtn = UiHelper.CreateButton(ContentRoot, "fetchDataBtn2i", "Try to fetch abnormality data",
                             StaticDataHelper.TryGetAbnoData);
             UIFactory.SetLayoutElement(tryGetAbnoDataBtn.GameObject, flexibleWidth: 200, flexibleHeight: 24);
+            var tryGetPersonalitiesBtn = UiHelper.CreateButton(ContentRoot, "fetchDataBtnP",
+                "Try to fetch identity data", StaticDataHelper.TryGetSinnerData);
+            UIFactory.SetLayoutElement(tryGetPersonalitiesBtn.GameObject, flexibleWidth: 200, flexibleHeight: 24);
             var tryDoLevelUpBtn = UiHelper.CreateButton(ContentRoot, "tryLevelBtn", "Test level-ups pt.1",
                 TrainerManager.tryDoOneLevelUp);
             UIFactory.SetLayoutElement(tryDoLevelUpBtn.GameObject, flexibleWidth: 200, flexibleHeight: 24);

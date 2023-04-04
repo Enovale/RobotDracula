@@ -2,6 +2,6 @@
 
 public class LevelDependentStat
 {
-    public float GrowthPerLevel;
-    public int BaseValue;
+    public float GrowthPerLevel { get; set; }
+    public float BaseValue { get; set; }
 }
