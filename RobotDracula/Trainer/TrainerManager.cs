@@ -140,18 +140,16 @@ namespace RobotDracula.Trainer
 
         public static void DoCharacterLevelUps()
         {
-            MirrorDungeonLevelUpPopup levelUpView =
-                DungeonHelper.MirrorDungeonManager._stageRewardManager._characterLevelUpView;
-            int numLevelUps = levelUpView._levelUpCount;
-            List<MirrorDungeonLevelUpData> PotentialLevelUps = levelUpView._levelUpDataList;
-            System.Collections.Generic.List<MirrorDungeonLevelUpData> data =
-                PotentialLevelUps.ToArray().ToList().OrderByDescending(a => a.NextLevel).ToList();
+            var levelUpView = DungeonHelper.MirrorDungeonManager._stageRewardManager._characterLevelUpView;
+            var numLevelUps = levelUpView._levelUpCount;
+            var PotentialLevelUps = levelUpView._levelUpDataList;
+            var data = PotentialLevelUps.ToArray().ToList().OrderByDescending(a => a.NextLevel).ToList();
             //OpenConfirmView(LevelUpData)
             //ConfirmView.FinishLevelUP
             //smth with egos and shit in the middle.
-            for (int i = 0; i < numLevelUps; i++)
+            for (var i = 0; i < numLevelUps; i++)
             {
-                MirrorDungeonLevelUpData charToLevel = data[i];
+                var charToLevel = data[i];
                 levelUpView.OpenConfirmView(charToLevel);
                 UIScrollViewItem<Ego>[] potentialEgos =
                     levelUpView._confirmView._switchPanel.EgoScrollView._itemList._items;
@@ -170,20 +168,18 @@ namespace RobotDracula.Trainer
 
         public static void tryDoOneLevelUp()
         {
-            MirrorDungeonLevelUpPopup levelUpView =
-                DungeonHelper.MirrorDungeonManager._stageRewardManager._characterLevelUpView;
+            var levelUpView = DungeonHelper.MirrorDungeonManager._stageRewardManager._characterLevelUpView;
             if (!levelUpView.isActiveAndEnabled || _waitingForLevelUpResponse)
             {
                 // u clicked the btn too early ya stinkin idiot
                 return;
             }
 
-            int numLevelUps = levelUpView._levelUpCount;
+            var numLevelUps = levelUpView._levelUpCount;
             Plugin.PluginLog.LogInfo(numLevelUps);
-            List<MirrorDungeonLevelUpData> PotentialLevelUps = levelUpView._levelUpDataList;
-            System.Collections.Generic.List<MirrorDungeonLevelUpData> data =
-                PotentialLevelUps.ToArray().ToList().OrderByDescending(a => a.NextLevel).ToList();
-            MirrorDungeonLevelUpData test = data[0];
+            var PotentialLevelUps = levelUpView._levelUpDataList;
+            var data = PotentialLevelUps.ToArray().ToList().OrderByDescending(a => a.NextLevel).ToList();
+            var test = data[0];
             levelUpView.OpenConfirmView(test);
             levelUpView._confirmView.btn_confirm.OnClick(false);
             levelUpView._confirmView.OpenSetEgoPanel();
@@ -191,10 +187,10 @@ namespace RobotDracula.Trainer
                 levelUpView._confirmView._switchPanel.EgoScrollView._itemList._items;
             Plugin.PluginLog.LogInfo(levelUpView._confirmView._switchPanel.EgoScrollView._itemList._size);
             Plugin.PluginLog.LogInfo(potentialEgos.Length);
-            int calculatedLength = 0;
-            for (int i = 0; i < potentialEgos.Length; i++)
+            var calculatedLength = 0;
+            foreach (var ego in potentialEgos)
             {
-                if (potentialEgos[i]._data == null) break;
+                if (ego._data == null) break;
                 calculatedLength++;
             }
 
@@ -221,11 +217,13 @@ namespace RobotDracula.Trainer
                 Plugin.PluginLog.LogWarning("Executing current node encounter! Beware!!");
             }
 
+            var currentNode = DungeonHelper.CachedCurrentNodeModel.Cast<INodeModel>();
+            var nextNode = NextChosenNode.Cast<INodeModel>();
             // Seems to move the current node and ensure that NODERESULT gets set (sends move to the server)
-            DungeonProgressManager.UpdateCurrentNode(DungeonHelper.CachedCurrentNodeModel, NextChosenNode, new());
+            DungeonProgressManager.UpdateCurrentNode(currentNode, nextNode, new());
 
             // Opens the formation panel or enter abno event screen.
-            DungeonHelper.MirrorMapManager._encounterManager.ExecuteEncounter(NextChosenNode);
+            DungeonHelper.MirrorMapManager._encounterManager.ExecuteEncounter(nextNode);
 
             NextChosenNode = null;
         }
