@@ -7,7 +7,6 @@ namespace RobotDracula.Battle
 {
     public static class BattleHelper
     {
-        private static float doActionCooldown = 0f;
         private static BattleUIRoot _uiRoot => SingletonBehavior<BattleUIRoot>.Instance;
         
         private static NewOperationController _controller
@@ -37,19 +36,7 @@ namespace RobotDracula.Battle
 
         static BattleHelper()
         {
-            TrainerManager.BattleUpdate += HandleBattleAutomation;
-        }
-
-        public static void HandleBattleAutomation()
-        {
-            if (doActionCooldown <= 0)
-            {
-                SetToggleToWinRate();
-                CompleteCommand();
-                doActionCooldown = 5f;
-            }
-
-            doActionCooldown -= Time.fixedDeltaTime;
+            TrainerManager.BattleUpdate += BattleAutomation.HandleBattleAutomation;
         }
 
         public static void SetToggleToWinRate()
