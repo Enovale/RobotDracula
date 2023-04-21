@@ -1,7 +1,8 @@
-﻿namespace RobotDracula.ExportableDataModels;
-
-public class LevelDependentStat
+﻿namespace RobotDracula.ExportableDataModels
 {
-    public float GrowthPerLevel { get; set; }
-    public float BaseValue { get; set; }
+    public class LevelDependentStat
+    {
+        public float GrowthPerLevel { get; set; }
+        public float BaseValue { get; set; }
+    }
 }

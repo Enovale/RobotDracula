@@ -1,7 +1,8 @@
-﻿namespace RobotDracula.ExportableDataModels;
-
-public class AbnormalityPassive
+﻿namespace RobotDracula.ExportableDataModels
 {
-    public string Name;
-    public string Description;
+    public class AbnormalityPassive
+    {
+        public string Name;
+        public string Description;
+    }
 }

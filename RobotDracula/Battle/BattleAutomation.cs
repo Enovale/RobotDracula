@@ -1,19 +1,21 @@
 ﻿using UnityEngine;
 
-namespace RobotDracula.Battle;
-
-public static class BattleAutomation
+namespace RobotDracula.Battle
 {
-    private static float doActionCooldown = 0f;
-    public static void HandleBattleAutomation()
+    public static class BattleAutomation
     {
-        if (doActionCooldown <= 0)
+        private static float _doActionCooldown = 0f;
+    
+        public static void HandleBattleAutomation()
         {
-            BattleHelper.SetToggleToWinRate();
-            BattleHelper.CompleteCommand();
-            doActionCooldown = 5f;
-        }
+            if (_doActionCooldown <= 0)
+            {
+                BattleHelper.SetToggleToWinRate();
+                BattleHelper.CompleteCommand();
+                _doActionCooldown = 5f;
+            }
 
-        doActionCooldown -= Time.fixedDeltaTime;
+            _doActionCooldown -= Time.fixedDeltaTime;
+        }
     }
 }

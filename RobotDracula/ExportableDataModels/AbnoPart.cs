@@ -1,6 +1,7 @@
-﻿namespace RobotDracula.ExportableDataModels;
-
-public class AbnoPart
+﻿namespace RobotDracula.ExportableDataModels
 {
+    public class AbnoPart
+    {
     
+    }
 }

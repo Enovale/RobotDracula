@@ -105,26 +105,8 @@ namespace RobotDracula.UI
             var predictLabel4 = UiHelper.CreateLabel(predictGroup, "predictLabel4",
                 () => $"Type:\n{_predictedNode.encounter}");
 
-            var myBtn = UiHelper.CreateButton(ContentRoot, "myBtn", "Complete Command", OnCreateCommandClick);
-            UIFactory.SetLayoutElement(myBtn.GameObject, flexibleWidth: 200, flexibleHeight: 24);
-            myBtn.OnClick = OnCreateCommandClick;
-            var myBtn3 = UiHelper.CreateButton(ContentRoot, "myBtn3", "Win Rate Toggle", OnWinRateToggleClick);
-            UIFactory.SetLayoutElement(myBtn3.GameObject, flexibleWidth: 200, flexibleHeight: 24);
-            var myBtn4 = UiHelper.CreateButton(ContentRoot, "myBtn4", "Damage Toggle", OnDamageToggleClick);
-            UIFactory.SetLayoutElement(myBtn4.GameObject, flexibleWidth: 200, flexibleHeight: 24);
-            var myBtn2 = UiHelper.CreateButton(ContentRoot, "myBtn2", "Execute Next Encounter",
-                TrainerManager.ExecuteNextEncounter);
-            UIFactory.SetLayoutElement(myBtn2.GameObject, flexibleWidth: 200, flexibleHeight: 24);
             var myBtn6 = UiHelper.CreateButton(ContentRoot, "myBtn6", "Print Dungeon", PrintDungeon);
             UIFactory.SetLayoutElement(myBtn6.GameObject, flexibleWidth: 200, flexibleHeight: 24);
-            // var recordBtn = UiHelper.CreateButton(ContentRoot, "recordBtn", "Start Profiler",
-            //     GlobalGameHelper.StartProfiler);
-            // UIFactory.SetLayoutElement(recordBtn.GameObject, flexibleWidth: 200, flexibleHeight: 24);
-            // var recordStopBtn = UiHelper.CreateButton(ContentRoot, "recordStopBtn", "Stop Profiler",
-            //     GlobalGameHelper.StopProfiler);
-            // UIFactory.SetLayoutElement(recordStopBtn.GameObject, flexibleWidth: 200, flexibleHeight: 24);
-            // var loginGuestBtn = UiHelper.CreateButton(ContentRoot, "loginGuestBtn", "Dev Guest Login",
-            //     GlobalGameHelper.DevLogin);
             //UIFactory.SetLayoutElement(loginGuestBtn.GameObject, flexibleWidth: 200, flexibleHeight: 24);
             //var tryGetEnemyDataBtn = UiHelper.CreateButton(ContentRoot, "fetchDataBtn", "Try to fetch enemy data",
             //StaticDataHelper.TryGetEnemyData);
@@ -145,8 +127,17 @@ namespace RobotDracula.UI
             slider.maxValue = 10f;
             slider.minValue = 0f;
             slider.onValueChanged.AddListener(f => GlobalGameHelper.TimeScale = f);
-            var timeScaleLabel =
-                UiHelper.CreateLabel(ContentRoot, "timeScaleLabel", () => $"Timescale: {slider.value}");
+            var timeScaleLabelGroup = UIFactory.CreateUIObject("timeScaleLabelGroup", ContentRoot);
+            UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(timeScaleLabelGroup, false, false, true, true, 2);
+            var timeScaleButton = UiHelper.CreateButton(timeScaleLabelGroup, "timeScaleButton", "↻",
+                () =>
+                {
+                    GlobalGameHelper.TimeScale = 1;
+                    slider.value = GlobalGameHelper.TimeScale;
+                });
+            UIFactory.SetLayoutElement(timeScaleButton.GameObject, preferredWidth: 24, preferredHeight: 24);
+            var timeScaleLabel = UiHelper.CreateLabel(timeScaleLabelGroup, "timeScaleLabel", () => $"Timescale: {GlobalGameHelper.TimeScale}");
+            UIFactory.SetLayoutElement(timeScaleLabel.gameObject);
 
             var toggleRow = UIFactory.CreateUIObject("toggleRow1", ContentRoot);
             UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(toggleRow, false, false, true, true, 2);
