@@ -4,15 +4,20 @@ namespace RobotDracula.Battle
 {
     public static class BattleAutomation
     {
-        private static float _doActionCooldown = 0f;
+        public static bool DoWinRateAutomation = true;
+    
+        private static float _doActionCooldown;
     
         public static void HandleBattleAutomation()
         {
             if (_doActionCooldown <= 0)
             {
-                BattleHelper.SetToggleToWinRate();
+                if (DoWinRateAutomation)
+                    BattleHelper.SetToggleToWinRate();
+                else
+                    BattleHelper.SetToggleToDamage();
                 BattleHelper.CompleteCommand();
-                _doActionCooldown = 5f;
+                _doActionCooldown = 1f;
             }
 
             _doActionCooldown -= Time.fixedDeltaTime;

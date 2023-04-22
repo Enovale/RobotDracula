@@ -63,6 +63,10 @@ namespace RobotDracula.UI
                 () => TrainerManager.BattleAutomationEnabled,
                 b => TrainerManager.BattleAutomationEnabled = b, out _, out _);
             UIFactory.SetLayoutElement(battleToggle.gameObject, flexibleWidth: 200, flexibleHeight: 8);
+            var winRateToggle = UiHelper.CreateToggle(automationRow, "winRateToggle", "Win Rate", true,
+                () => BattleAutomation.DoWinRateAutomation,
+                b => BattleAutomation.DoWinRateAutomation = b, out _, out _);
+            UIFactory.SetLayoutElement(winRateToggle.gameObject, flexibleWidth: 200, flexibleHeight: 8);
             var dungeonToggle = UiHelper.CreateToggle(automationRow, "dungeon", "Dungeon", false,
                 () => TrainerManager.DungeonAutomationEnabled,
                 b => TrainerManager.DungeonAutomationEnabled = b, out _, out _);

@@ -52,6 +52,11 @@ namespace RobotDracula.Trainer
         private static List<MirrorDungeonMapNodeInfo> _currentFloorNodes
             => DungeonHelper.MirrorMapManager._nodesByFloor[DungeonProgressManager.FloorNumber];
 
+        static TrainerManager()
+        {
+            BattleUpdate += BattleAutomation.HandleBattleAutomation;
+        }
+
         public static void Update()
         {
             if (BattleAutomationEnabled && Singleton<StageController>.Instance.Phase == STAGE_PHASE.WAIT_COMMAND)

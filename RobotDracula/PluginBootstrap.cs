@@ -1,3 +1,4 @@
+using System;
 using RobotDracula.Trainer;
 using RobotDracula.UI;
 using UnityEngine;
@@ -8,7 +9,7 @@ namespace RobotDracula
     {
         public static bool TrainerEnabled = true;
         public static bool ReactiveUIEnabled = true;
-        
+
         private void Update()
         {
             if (Input.GetKeyDown(KeyCode.F8))

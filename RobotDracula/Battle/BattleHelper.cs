@@ -34,11 +34,6 @@ namespace RobotDracula.Battle
         
         public static STAGE_PHASE StagePhase => Singleton<StageController>.Instance.Phase;
 
-        static BattleHelper()
-        {
-            TrainerManager.BattleUpdate += BattleAutomation.HandleBattleAutomation;
-        }
-
         public static void SetToggleToWinRate()
         {
             if (_autoSelectManager is not null && !_autoSelectManager.toggle_winRate.isOn)
