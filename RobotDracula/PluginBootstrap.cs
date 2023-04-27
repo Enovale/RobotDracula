@@ -72,7 +72,7 @@ namespace RobotDracula
             if (ReactiveUIEnabled && Plugin.ShowTrainer)
                 UiHelper.Update();
 
-            if (TrainerEnabled)
+            if (TrainerEnabled && GlobalGameManager.Instance != null)
                 TrainerManager.Update();
         }
     }

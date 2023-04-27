@@ -1,7 +1,5 @@
 using BattleUI;
 using BattleUI.Operation;
-using RobotDracula.Trainer;
-using UnityEngine;
 
 namespace RobotDracula.Battle
 {

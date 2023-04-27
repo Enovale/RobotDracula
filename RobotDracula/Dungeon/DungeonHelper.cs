@@ -26,7 +26,7 @@ namespace RobotDracula.Dungeon
         public static NodeModel CurrentNodeModel
             => MapManager.GetCurrentNode();
 
-        private static int _cachedNodeId;
+        private static int _cachedNodeId = -1;
 
         private static NodeModel _cachedNodeModel;
 

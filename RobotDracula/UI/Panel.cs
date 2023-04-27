@@ -26,7 +26,7 @@ namespace RobotDracula.UI
 
         public override int MinWidth { get; } = 300;
 
-        public override int MinHeight { get; } = 550;
+        public override int MinHeight { get; } = 450;
 
         public override Vector2 DefaultAnchorMin { get; } = Vector2.zero;
 
@@ -94,7 +94,7 @@ namespace RobotDracula.UI
             var predictLabel = UIFactory.CreateLabel(predictLabelGroup, "predictLabel", "Next Node:");
             UIFactory.SetLayoutElement(predictLabel.gameObject);
             var predictButton = UiHelper.CreateButton(predictLabelGroup, "predictButton", "↻",
-                () => TrainerManager.GetNextNode());
+                () => _predictedNode = DungeonAutomation.GetNextNode());
             var predictToggle = UiHelper.CreateToggle(predictLabelGroup, "predictToggle", "Watch", false,
                 val => _watchPrediction = val, out _, out _);
             UIFactory.SetLayoutElement(predictToggle, minHeight: 25, flexibleWidth: 9999);
@@ -122,7 +122,7 @@ namespace RobotDracula.UI
                 "Try to fetch identity data", StaticDataHelper.TryGetSinnerData);
             UIFactory.SetLayoutElement(tryGetPersonalitiesBtn.GameObject, flexibleWidth: 200, flexibleHeight: 24);
             var tryDoLevelUpBtn = UiHelper.CreateButton(ContentRoot, "tryLevelBtn", "Test level-ups pt.1",
-                TrainerManager.tryDoOneLevelUp);
+                DungeonAutomation.TryDoOneLevelUp);
             UIFactory.SetLayoutElement(tryDoLevelUpBtn.GameObject, flexibleWidth: 200, flexibleHeight: 24);
             var timeScaleSlider = UIFactory.CreateSlider(ContentRoot, "timeScaleScrollbar", out var slider);
             UIFactory.SetLayoutElement(timeScaleSlider, minHeight: 25, minWidth: 70, flexibleWidth: 999,
@@ -130,14 +130,14 @@ namespace RobotDracula.UI
             slider.value = 1f;
             slider.maxValue = 10f;
             slider.minValue = 0f;
-            slider.onValueChanged.AddListener(f => GlobalGameHelper.TimeScale = f);
+            slider.onValueChanged.AddListener(f => GeneralAutomation.DesiredTimescale = f);
             var timeScaleLabelGroup = UIFactory.CreateUIObject("timeScaleLabelGroup", ContentRoot);
             UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(timeScaleLabelGroup, false, false, true, true, 2);
             var timeScaleButton = UiHelper.CreateButton(timeScaleLabelGroup, "timeScaleButton", "↻",
                 () =>
                 {
-                    GlobalGameHelper.TimeScale = 1;
-                    slider.value = GlobalGameHelper.TimeScale;
+                    GeneralAutomation.DesiredTimescale = 1f;
+                    slider.value = GeneralAutomation.DesiredTimescale;
                 });
             UIFactory.SetLayoutElement(timeScaleButton.GameObject, preferredWidth: 24, preferredHeight: 24);
             var timeScaleLabel = UiHelper.CreateLabel(timeScaleLabelGroup, "timeScaleLabel", () => $"Timescale: {GlobalGameHelper.TimeScale}");
@@ -154,7 +154,7 @@ namespace RobotDracula.UI
                 val => GlobalGameHelper.DebugCanvasEnabled = val, out _, out _);
             UIFactory.SetLayoutElement(myToggle3, minHeight: 25, flexibleWidth: 9999);
             var fpsCapToggle = UiHelper.CreateToggle(toggleRow, "fpsCapToggle", "FPS Cap", true,
-                val => TrainerManager.FPSCapEnabled = val, out _, out _);
+                val => GeneralAutomation.FPSCapEnabled = val, out _, out _);
             UIFactory.SetLayoutElement(fpsCapToggle, minHeight: 25, flexibleWidth: 9999);
         }
 
@@ -169,28 +169,13 @@ namespace RobotDracula.UI
             {
                 try
                 {
-                    _predictedNode = TrainerManager.GetNextNode();
+                    _predictedNode = DungeonAutomation.GetNextNode();
                 }
                 catch (Exception)
                 {
                     // ignored
                 }
             }
-        }
-
-        private void OnWinRateToggleClick()
-        {
-            BattleHelper.SetToggleToWinRate();
-        }
-
-        private void OnDamageToggleClick()
-        {
-            BattleHelper.SetToggleToDamage();
-        }
-
-        private void OnCreateCommandClick()
-        {
-            BattleHelper.CompleteCommand();
         }
 
         private void PrintDungeon()

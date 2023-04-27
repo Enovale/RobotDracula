@@ -1,9 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text.Encodings.Web;
-using Il2CppInterop.Runtime;
 using RobotDracula.ExportableDataModels;
-using Steamworks.Data;
 using System.Text.Json;
 using System.Text.Unicode;
 using UnityEngine;
@@ -26,7 +24,8 @@ namespace RobotDracula.General
                 ATK_BEHAVIOUR.SLASH => "Slash",
                 ATK_BEHAVIOUR.PENETRATE => "Pierce",
                 ATK_BEHAVIOUR.NONE => "None",
-                ATK_BEHAVIOUR.ERROR => "Very Sus"
+                ATK_BEHAVIOUR.ERROR => "Very Sus",
+                _ => throw new ArgumentOutOfRangeException(nameof(dmg), dmg, null)
             };
         }
 
@@ -113,7 +112,6 @@ namespace RobotDracula.General
             encoderSettings.AllowRange(UnicodeRanges.All);
             encoderSettings.AllowCharacter('\u002B');
             JsonSerializerOptions jsonOpts = new() {WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping};
-            int assumedThreadSpinLevel = 3;
 
             List<PersonalityStaticData> personalityData = StaticDataManager.PersonalityStaticDataList.list;
             System.Collections.Generic.List<Identity> parsedSinnerData = new();
