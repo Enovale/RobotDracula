@@ -15,6 +15,8 @@ namespace RobotDracula.Dungeon
         public static NodeModel NextChosenNode;
 
         private static float _advanceCooldown;
+        
+        private static float _levelUpCooldown;
 
         private static bool _waitingForLevelUpResponse = false;
 
@@ -29,9 +31,7 @@ namespace RobotDracula.Dungeon
             var result = DungeonProgressHelper.CurrentNodeResult;
             if (_advanceCooldown <= 0f && 
                 !_waitingForLevelUpResponse && 
-                result != DUNGEON_NODERESULT.INBATTLE && 
-                result != DUNGEON_NODERESULT.RUNNING && 
-                result != DUNGEON_NODERESULT.DEFEAT)
+                (result == DUNGEON_NODERESULT.WIN || DungeonHelper.CachedCurrentNodeModel.encounter == ENCOUNTER.START))
             {
                 NextChosenNode = GetNextNode();
                 
@@ -73,16 +73,28 @@ namespace RobotDracula.Dungeon
         {
             var levelUpView = DungeonHelper.MirrorDungeonManager.StageReward._characterLevelUpView;
             
-            if (levelUpView.IsOpened && !_waitingForLevelUpResponse && !levelUpView._confirmView.isActiveAndEnabled)
+            if (_levelUpCooldown <= 0f && levelUpView.IsOpened && !_waitingForLevelUpResponse && !levelUpView._confirmView.isActiveAndEnabled)
             {
                 TryDoOneLevelUp();
+                _levelUpCooldown = 1f;
             }
-            else if (levelUpView.IsOpened && levelUpView._confirmView._afterConfirmView.isActiveAndEnabled)
+            else if (_levelUpCooldown <= 0f && levelUpView.IsOpened && levelUpView._confirmView._afterConfirmView.isActiveAndEnabled)
             {
                 Plugin.PluginLog.LogWarning("Closing afterConfirmView");
                 _waitingForLevelUpResponse = false;
                 DungeonHelper.MirrorDungeonManager.StageReward._characterLevelUpView._confirmView.btn_close.OnClick(false);
+                _levelUpCooldown = 1f;
             }
+
+            _levelUpCooldown -= Time.fixedDeltaTime;
+        }
+
+        public static void HandleNewCharacterAutomation()
+        {
+        }
+
+        public static void HandleEgoGiftAutomation()
+        {
         }
 
         public static void TryDoOneLevelUp()
@@ -152,7 +164,8 @@ namespace RobotDracula.Dungeon
             if (!nextSector.Any())
                 return null;
 
-            var sortedSector = nextSector.OrderByDescending(i => i.GetEncounterType() == ENCOUNTER.EVENT)
+            var sortedSector = nextSector.Where(i => DungeonHelper.MirrorMapManager.IsValidNode(currentNode, _nodeDict[i.nodeId].NodeModel))
+                .OrderByDescending(i => i.GetEncounterType() == ENCOUNTER.EVENT)
                 .ThenByDescending(i => i.GetEncounterType() == ENCOUNTER.BATTLE)
                 .ThenByDescending(i => i.GetEncounterType() == ENCOUNTER.HARD_BATTLE)
                 .ThenByDescending(i => i.GetEncounterType() == ENCOUNTER.AB_BATTLE)
@@ -161,14 +174,6 @@ namespace RobotDracula.Dungeon
                 .ThenByDescending(i => i.GetEncounterType() == ENCOUNTER.START);
             var nodeInfo = sortedSector.First();
             var chosenNode = _nodeDict[nodeInfo.nodeId].NodeModel;
-            Plugin.PluginLog.LogError(chosenNode);
-
-            // Makes sure we can travel to that node validly
-            // NOTE: there needs to be a valid path or the server will not allow you to advance after encounter
-            if (!DungeonHelper.MirrorMapManager.IsValidNode(currentNode, chosenNode))
-            {
-                chosenNode = null;
-            }
 
             if (chosenNode == null && DungeonProgressHelper.CurrentNodeResult == DUNGEON_NODERESULT.INBATTLE)
                 chosenNode = currentNode;

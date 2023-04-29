@@ -1,4 +1,3 @@
-using Dungeon;
 using RobotDracula.Battle;
 using RobotDracula.Dungeon;
 using RobotDracula.General;
@@ -42,6 +41,8 @@ namespace RobotDracula.Trainer
             BattleUpdate += BattleAutomation.HandleBattleAutomation;
             MirrorDungeonMapUpdate += DungeonAutomation.HandleDungeonAutomation;
             LevelUpUpdate += DungeonAutomation.HandleLevelUpAutomation;
+            NewCharacterUpdate += DungeonAutomation.HandleNewCharacterAutomation;
+            EgoGiftUpdate += DungeonAutomation.HandleEgoGiftAutomation;
             TrainerUpdate += GeneralAutomation.HandleFPSUncap;
             TrainerUpdate += GeneralAutomation.HandleTimescaleUpdate;
         }
@@ -63,16 +64,16 @@ namespace RobotDracula.Trainer
                     {
                         LevelUpUpdate?.Invoke();
                     }
-                    else if (DungeonHelper.MirrorDungeonManager.StageReward._acquireNewCharacterView is {IsOpened: true})
+                    // The last two don't use the IsOpened paradigm. Why? Who knows.
+                    else if (DungeonHelper.MirrorDungeonManager.StageReward._acquireNewCharacterView is {isActiveAndEnabled: true})
                     {
                         NewCharacterUpdate?.Invoke();
                     }
-                    else if (DungeonHelper.MirrorDungeonManager.StageReward._acquireEgoGiftView is {IsOpened: true} || 
-                             DungeonUIManager.Instance._egoGiftPopup is {IsOpened: true})
+                    else if (DungeonHelper.MirrorDungeonManager.StageReward._acquireEgoGiftView is {isActiveAndEnabled: true})
                     {
                         EgoGiftUpdate?.Invoke();
                     }
-                    else
+                    else if (DungeonHelper.MirrorDungeonManager.StageReward.RewardStatusData.IsAllFinished)
                     {
                         MirrorDungeonMapUpdate?.Invoke();    
                     }

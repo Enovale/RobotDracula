@@ -5,6 +5,9 @@ namespace RobotDracula.Dungeon
 {
     public static class DungeonProgressHelper
     {
+        public static int FloorNumber
+            => DungeonProgressManager.ProgressBridge == null ? -1 : DungeonProgressManager.FloorNumber;
+        
         public static int NodeID
             => DungeonProgressManager.ProgressBridge == null ? -1 : DungeonProgressManager.NodeID;
 

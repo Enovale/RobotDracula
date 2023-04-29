@@ -111,19 +111,6 @@ namespace RobotDracula.UI
 
             var myBtn6 = UiHelper.CreateButton(ContentRoot, "myBtn6", "Print Dungeon", PrintDungeon);
             UIFactory.SetLayoutElement(myBtn6.GameObject, flexibleWidth: 200, flexibleHeight: 24);
-            //UIFactory.SetLayoutElement(loginGuestBtn.GameObject, flexibleWidth: 200, flexibleHeight: 24);
-            //var tryGetEnemyDataBtn = UiHelper.CreateButton(ContentRoot, "fetchDataBtn", "Try to fetch enemy data",
-            //StaticDataHelper.TryGetEnemyData);
-            //UIFactory.SetLayoutElement(tryGetEnemyDataBtn.GameObject, flexibleWidth: 200, flexibleHeight: 24);
-            var tryGetAbnoDataBtn = UiHelper.CreateButton(ContentRoot, "fetchDataBtn2i", "Try to fetch abnormality data",
-                            StaticDataHelper.TryGetAbnoData);
-            UIFactory.SetLayoutElement(tryGetAbnoDataBtn.GameObject, flexibleWidth: 200, flexibleHeight: 24);
-            var tryGetPersonalitiesBtn = UiHelper.CreateButton(ContentRoot, "fetchDataBtnP",
-                "Try to fetch identity data", StaticDataHelper.TryGetSinnerData);
-            UIFactory.SetLayoutElement(tryGetPersonalitiesBtn.GameObject, flexibleWidth: 200, flexibleHeight: 24);
-            var tryDoLevelUpBtn = UiHelper.CreateButton(ContentRoot, "tryLevelBtn", "Test level-ups pt.1",
-                DungeonAutomation.TryDoOneLevelUp);
-            UIFactory.SetLayoutElement(tryDoLevelUpBtn.GameObject, flexibleWidth: 200, flexibleHeight: 24);
             var timeScaleSlider = UIFactory.CreateSlider(ContentRoot, "timeScaleScrollbar", out var slider);
             UIFactory.SetLayoutElement(timeScaleSlider, minHeight: 25, minWidth: 70, flexibleWidth: 999,
                 flexibleHeight: 0);
