@@ -1,4 +1,5 @@
 using System;
+using ChoiceEvent;
 using Dungeon;
 using Dungeon.Map;
 using Il2CppSystem.Text;
@@ -26,7 +27,7 @@ namespace RobotDracula.UI
 
         public override int MinWidth { get; } = 300;
 
-        public override int MinHeight { get; } = 450;
+        public override int MinHeight { get; } = 350;
 
         public override Vector2 DefaultAnchorMin { get; } = Vector2.zero;
 
@@ -36,7 +37,10 @@ namespace RobotDracula.UI
 
         public override bool CanDragAndResize { get; } = true;
 
+        private ChoiceEventProgressData _choiceEventData = null;
+
         private bool _watchPrediction;
+        private bool _watchChoiceDebug;
         private NodeModel _predictedNode;
 
         protected override void ConstructPanelContent()
@@ -108,6 +112,26 @@ namespace RobotDracula.UI
                 () => $"NodeID:\n{_predictedNode.id}");
             var predictLabel4 = UiHelper.CreateLabel(predictGroup, "predictLabel4",
                 () => $"Type:\n{_predictedNode.encounter}");
+            
+            var choiceLabelGroup = UIFactory.CreateUIObject("choiceLabelGroup", ContentRoot);
+            UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(choiceLabelGroup, false, false, true, true, 2);
+            var choiceLabel = UIFactory.CreateLabel(choiceLabelGroup, "choiceLabel", "Event Things:");
+            UIFactory.SetLayoutElement(choiceLabel.gameObject);
+            var choiceButton = UiHelper.CreateButton(choiceLabelGroup, "choiceButton", "↻",
+                () => _choiceEventData = DungeonHelper.DungeonUIManager._choiceEventController._eventProgressData);
+            var choiceToggle = UiHelper.CreateToggle(choiceLabelGroup, "choiceToggle", "Watch", false,
+                val => _watchChoiceDebug = val, out _, out _);
+            UIFactory.SetLayoutElement(choiceToggle, minHeight: 25, flexibleWidth: 9999);
+            UIFactory.SetLayoutElement(choiceButton.GameObject, preferredWidth: 24, preferredHeight: 24);
+            var choiceGroup = UIFactory.CreateHorizontalGroup(ContentRoot, "choiceGroup", true, false, true, true);
+            var choiceLabel1 = UiHelper.CreateLabel(choiceGroup, "choiceLabel1",
+                () => $"Event ID:\n{_choiceEventData.CurrentEventID}");
+            var choiceLabel2 = UiHelper.CreateLabel(choiceGroup, "choiceLabel2",
+                () => $"Event Type:\n{_choiceEventData.CurrentEventType}");
+            var choiceLabel3 = UiHelper.CreateLabel(choiceGroup, "choiceLabel3",
+                () => $"Next Event ID:\n{_choiceEventData.ResultData.NextEventID}");
+            var choiceLabel4 = UiHelper.CreateLabel(choiceGroup, "choiceLabel4",
+                () => $"Result Index:\n{_choiceEventData.ResultData.RessultIndex}");
 
             var myBtn6 = UiHelper.CreateButton(ContentRoot, "myBtn6", "Print Dungeon", PrintDungeon);
             UIFactory.SetLayoutElement(myBtn6.GameObject, flexibleWidth: 200, flexibleHeight: 24);
@@ -157,6 +181,18 @@ namespace RobotDracula.UI
                 try
                 {
                     _predictedNode = DungeonAutomation.GetNextNode();
+                }
+                catch (Exception)
+                {
+                    // ignored
+                }
+            }
+
+            if (_watchChoiceDebug)
+            {
+                try
+                {
+                    _choiceEventData = DungeonHelper.DungeonUIManager._choiceEventController._eventProgressData;
                 }
                 catch (Exception)
                 {

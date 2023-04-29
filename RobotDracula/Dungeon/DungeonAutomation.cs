@@ -10,15 +10,19 @@ using UnityEngine;
 
 namespace RobotDracula.Dungeon
 {
-    public static class DungeonAutomation
+    public static partial class DungeonAutomation
     {
         public static NodeModel NextChosenNode;
 
         private static float _advanceCooldown;
         
+        private static float _eventChoiceCooldown;
+        
+        private static float _formationCooldown;
+        
         private static float _levelUpCooldown;
 
-        private static bool _waitingForLevelUpResponse = false;
+        private static bool _waitingForLevelUpResponse;
 
         private static Dictionary<int, MirrorDungeonNodeUI> _nodeDict
             => DungeonHelper.MirrorMapManager._nodeDictionary;
@@ -33,24 +37,28 @@ namespace RobotDracula.Dungeon
                 !_waitingForLevelUpResponse && 
                 (result == DUNGEON_NODERESULT.WIN || DungeonHelper.CachedCurrentNodeModel.encounter == ENCOUNTER.START))
             {
+                _advanceCooldown = 1f;
                 NextChosenNode = GetNextNode();
                 
                 if (NextChosenNode != null)
                     ExecuteNextEncounter();
-                
-                _advanceCooldown = 1f;
             }
-            else if (_advanceCooldown <= 0f && result == DUNGEON_NODERESULT.INBATTLE && !SingletonBehavior<DungeonFormationPanel>.Instance.gameObject.active)
+            else if (_advanceCooldown <= 0f && result == DUNGEON_NODERESULT.INBATTLE && !DungeonHelper.CachedCurrentNodeModel._isCleared && !SingletonBehavior<DungeonFormationPanel>.Instance.gameObject.active)
             {
+                _advanceCooldown = 1f;
                 NextChosenNode = DungeonHelper.CachedCurrentNodeModel;
                 ExecuteNextEncounter();
-                
-                _advanceCooldown = 1f;
             }
-            else if (_advanceCooldown <= 0f && SingletonBehavior<DungeonFormationPanel>.Instance.gameObject.active)
+
+            _advanceCooldown -= Time.fixedDeltaTime;
+        }
+
+        public static void HandleFormationAutomation()
+        {
+            if (_formationCooldown <= 0f)
             {
+                _formationCooldown = 1f;
                 var formationPanel = SingletonBehavior<DungeonFormationPanel>.Instance;
-                Plugin.PluginLog.LogInfo(formationPanel._curStage.ParticipantInfo.Max);
                 var sortedUnits = formationPanel._playerUnitFormation.PlayerUnits.ToArray()
                     .OrderByDescending(u => u.PersonalityLevel).ToArray();
                 for (var i = 0; i < formationPanel._playerUnitFormation.PlayerUnits.Count; i++)
@@ -58,15 +66,11 @@ namespace RobotDracula.Dungeon
                     var isParticipated = i < formationPanel._curStage.ParticipantInfo.Max;
                     sortedUnits[i].UpdateParticipation(isParticipated);
                 }
-                Plugin.PluginLog.LogInfo(formationPanel.GetParticipantsCount());
-                Plugin.PluginLog.LogInfo(string.Join(", ", formationPanel.ParticipantsIdList.ToArray().ToList()));
-                formationPanel.OnClickStartBattle();
                 
-                // Important because we have no way of knowing the difference between this branch and the one above
-                _advanceCooldown = 1f;
+                formationPanel.OnClickStartBattle();
             }
 
-            _advanceCooldown -= Time.fixedDeltaTime;
+            _formationCooldown -= Time.fixedDeltaTime;
         }
 
         public static void HandleLevelUpAutomation()
@@ -75,15 +79,14 @@ namespace RobotDracula.Dungeon
             
             if (_levelUpCooldown <= 0f && levelUpView.IsOpened && !_waitingForLevelUpResponse && !levelUpView._confirmView.isActiveAndEnabled)
             {
-                TryDoOneLevelUp();
                 _levelUpCooldown = 1f;
+                TryDoOneLevelUp();
             }
             else if (_levelUpCooldown <= 0f && levelUpView.IsOpened && levelUpView._confirmView._afterConfirmView.isActiveAndEnabled)
             {
-                Plugin.PluginLog.LogWarning("Closing afterConfirmView");
+                _levelUpCooldown = 1f;
                 _waitingForLevelUpResponse = false;
                 DungeonHelper.MirrorDungeonManager.StageReward._characterLevelUpView._confirmView.btn_close.OnClick(false);
-                _levelUpCooldown = 1f;
             }
 
             _levelUpCooldown -= Time.fixedDeltaTime;
@@ -95,6 +98,40 @@ namespace RobotDracula.Dungeon
 
         public static void HandleEgoGiftAutomation()
         {
+        }
+
+        public static void HandleChoiceEventAutomation()
+        {
+            if (_eventChoiceCooldown <= 0)
+            {
+                _eventChoiceCooldown = 1f;
+                
+                var choiceEventController = DungeonHelper.DungeonUIManager._choiceEventController;
+                var id = choiceEventController.GetCurrentEventID();
+
+                Plugin.PluginLog.LogInfo(id);
+                Plugin.PluginLog.LogInfo(choiceEventController._eventProgressData.CurrentEventID);
+                Plugin.PluginLog.LogInfo(choiceEventController._choiceSectionUI._actionChoiceButtonManager
+                    .isActiveAndEnabled);
+                Plugin.PluginLog.LogInfo(choiceEventController._choiceSectionUI._topPanelScrollBox._isSkipContent);
+                Plugin.PluginLog.LogInfo(choiceEventController._choiceSectionUI._behaveScrollBox._isSkipContent);
+                if (choiceEventController._choiceSectionUI._actionChoiceButtonManager.isActiveAndEnabled)
+                {
+                    if (_choiceActionDict.TryGetValue(id, out var actions))
+                    {
+                        //choiceEventController._choiceSectionUI.OnClickActionChoiceButton(actions);
+                    }
+                }
+
+                if (!choiceEventController._choiceSectionUI._topPanelScrollBox._isSkipContent)
+                {
+                    choiceEventController._choiceSectionUI._topPanelScrollBox.OnClickStorySkipButton();
+                    // TODO: Need to simulate a click or find the coroutine that uses this because
+                    // It won't skip and do the things until a click even if its skipping
+                }
+            }
+
+            _eventChoiceCooldown -= Time.fixedDeltaTime;
         }
 
         public static void TryDoOneLevelUp()

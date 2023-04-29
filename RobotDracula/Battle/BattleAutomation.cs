@@ -22,6 +22,7 @@ namespace RobotDracula.Battle
         {
             if (_doActionCooldown <= 0)
             {
+                _doActionCooldown = 1f;
                 var stageController = Singleton<StageController>.Instance;
                 if (stageController.Phase == STAGE_PHASE.WAIT_COMMAND)
                 {
@@ -48,7 +49,6 @@ namespace RobotDracula.Battle
 
                     BattleHelper.CompleteCommand();
                 }
-                _doActionCooldown = 1f;
             }
 
             _doActionCooldown -= Time.fixedDeltaTime;

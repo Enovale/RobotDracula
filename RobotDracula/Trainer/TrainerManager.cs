@@ -28,6 +28,14 @@ namespace RobotDracula.Trainer
 
         public static event MirrorEgoGiftRewardEventHandler EgoGiftUpdate;
 
+        public delegate void MirrorFormationEventHandler();
+
+        public static event MirrorFormationEventHandler FormationUpdate;
+
+        public delegate void MirrorDungeonEventChoiceEventHandler();
+
+        public static event MirrorDungeonEventChoiceEventHandler MirrorDungeonEventChoiceUpdate;
+
         public delegate void MirrorDungeonMapEventHandler();
 
         public static event MirrorDungeonMapEventHandler MirrorDungeonMapUpdate;
@@ -40,6 +48,8 @@ namespace RobotDracula.Trainer
         {
             BattleUpdate += BattleAutomation.HandleBattleAutomation;
             MirrorDungeonMapUpdate += DungeonAutomation.HandleDungeonAutomation;
+            MirrorDungeonEventChoiceUpdate += DungeonAutomation.HandleChoiceEventAutomation;
+            FormationUpdate += DungeonAutomation.HandleFormationAutomation;
             LevelUpUpdate += DungeonAutomation.HandleLevelUpAutomation;
             NewCharacterUpdate += DungeonAutomation.HandleNewCharacterAutomation;
             EgoGiftUpdate += DungeonAutomation.HandleEgoGiftAutomation;
@@ -60,20 +70,28 @@ namespace RobotDracula.Trainer
             {
                 if (GlobalGameManager.Instance.CheckSceneState(SCENE_STATE.MirrorDungeon))
                 {
-                    if (DungeonHelper.MirrorDungeonManager.StageReward._characterLevelUpView is {IsOpened: true})
+                    if (DungeonHelper.MirrorDungeonManager is {StageReward._characterLevelUpView.IsOpened: true})
                     {
                         LevelUpUpdate?.Invoke();
                     }
                     // The last two don't use the IsOpened paradigm. Why? Who knows.
-                    else if (DungeonHelper.MirrorDungeonManager.StageReward._acquireNewCharacterView is {isActiveAndEnabled: true})
+                    else if (DungeonHelper.MirrorDungeonManager is {StageReward._acquireNewCharacterView.isActiveAndEnabled: true})
                     {
                         NewCharacterUpdate?.Invoke();
                     }
-                    else if (DungeonHelper.MirrorDungeonManager.StageReward._acquireEgoGiftView is {isActiveAndEnabled: true})
+                    else if (DungeonHelper.MirrorDungeonManager is {StageReward._acquireEgoGiftView.isActiveAndEnabled: true})
                     {
                         EgoGiftUpdate?.Invoke();
                     }
-                    else if (DungeonHelper.MirrorDungeonManager.StageReward.RewardStatusData.IsAllFinished)
+                    else if (SingletonBehavior<DungeonFormationPanel>.Instance is {gameObject.active: true })
+                    {
+                        FormationUpdate?.Invoke();
+                    }
+                    else if (DungeonHelper.DungeonUIManager is {_choiceEventController.IsActivated: true})
+                    {
+                        MirrorDungeonEventChoiceUpdate?.Invoke();
+                    }
+                    else if (DungeonHelper.MirrorDungeonManager is {StageReward.RewardStatusData.IsAllFinished: true})
                     {
                         MirrorDungeonMapUpdate?.Invoke();    
                     }

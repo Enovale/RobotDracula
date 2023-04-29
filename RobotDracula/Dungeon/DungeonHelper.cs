@@ -14,6 +14,12 @@ namespace RobotDracula.Dungeon
         public static MirrorDungeonManager MirrorDungeonManager
             => MirrorDungeonManager.MirrorInstance;
 
+        public static DungeonUIManager DungeonUIManager
+            => SingletonBehavior<DungeonUIManager>.Instance;
+
+        public static MirrorDungeonUIManager MirrorDungeonUIManager
+            => SingletonBehavior<DungeonUIManager>.Instance.Cast<MirrorDungeonUIManager>();
+
         public static MapManager MapManager
             => DungeonManager.MapManager;
         
