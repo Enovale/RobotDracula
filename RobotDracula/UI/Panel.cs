@@ -80,7 +80,7 @@ namespace RobotDracula.UI
                 () => $"Current Stage Phase: {BattleHelper.StagePhase}");
             UIFactory.SetLayoutElement(myLabel.gameObject);
             var eventLabel = UiHelper.CreateLabel(ContentRoot, "eventLabel",
-                () => $"Current Event ID: {DungeonHelper.DungeonUIManager._choiceEventController._eventProgressData.CurrentEventID}");
+                () => $"Current Event ID: {(DungeonHelper.CachedCurrentNodeModel.encounter == ENCOUNTER.EVENT ? DungeonHelper.DungeonUIManager._choiceEventController._eventProgressData.CurrentEventID : null)}");
             UIFactory.SetLayoutElement(eventLabel.gameObject);
             var dungeonLabel = UIFactory.CreateLabel(ContentRoot, "dungeonLabel", "Dungeon Info:");
             UIFactory.SetLayoutElement(dungeonLabel.gameObject);
