@@ -4,7 +4,9 @@ using Dungeon;
 using Dungeon.Map;
 using Il2CppSystem.Text;
 using RobotDracula.Battle;
+using RobotDracula.Battle.Automation;
 using RobotDracula.Dungeon;
+using RobotDracula.Dungeon.Automation;
 using RobotDracula.General;
 using RobotDracula.Trainer;
 using UnityEngine;
@@ -67,10 +69,10 @@ namespace RobotDracula.UI
                 () => TrainerManager.BattleAutomationEnabled,
                 b => TrainerManager.BattleAutomationEnabled = b, out _, out _);
             UIFactory.SetLayoutElement(battleToggle.gameObject, flexibleWidth: 200, flexibleHeight: 8);
-            var winRateToggle = UiHelper.CreateToggle(automationRow, "winRateToggle", "Win Rate", true,
-                () => BattleAutomation.DoWinRateAutomation,
-                b => BattleAutomation.DoWinRateAutomation = b, out _, out _);
-            UIFactory.SetLayoutElement(winRateToggle.gameObject, flexibleWidth: 200, flexibleHeight: 8);
+            var eventToggle = UiHelper.CreateToggle(automationRow, "eventToggle", "Event", true,
+                () => TrainerManager.ChoiceEventAutomationEnabled,
+                b => TrainerManager.ChoiceEventAutomationEnabled = b, out _, out _);
+            UIFactory.SetLayoutElement(eventToggle.gameObject, flexibleWidth: 200, flexibleHeight: 8);
             var dungeonToggle = UiHelper.CreateToggle(automationRow, "dungeon", "Dungeon", false,
                 () => TrainerManager.DungeonAutomationEnabled,
                 b => TrainerManager.DungeonAutomationEnabled = b, out _, out _);

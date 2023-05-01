@@ -1,5 +1,7 @@
-using RobotDracula.Battle;
+using RobotDracula.Battle.Automation;
+using RobotDracula.ChoiceEvent.Automation;
 using RobotDracula.Dungeon;
+using RobotDracula.Dungeon.Automation;
 using RobotDracula.General;
 
 namespace RobotDracula.Trainer
@@ -9,8 +11,8 @@ namespace RobotDracula.Trainer
         public static bool BattleAutomationEnabled = false;
 
         public static bool DungeonAutomationEnabled = false;
-
-        public static bool DungeonLevelUpAutomationEnabled = false;
+        
+        public static bool ChoiceEventAutomationEnabled = false;
 
         public delegate void BattleUpdateEventHandler();
 
@@ -48,7 +50,7 @@ namespace RobotDracula.Trainer
         {
             BattleUpdate += BattleAutomation.HandleBattleAutomation;
             MirrorDungeonMapUpdate += DungeonAutomation.HandleDungeonAutomation;
-            MirrorDungeonEventChoiceUpdate += DungeonAutomation.HandleChoiceEventAutomation;
+            MirrorDungeonEventChoiceUpdate += ChoiceEventAutomation.HandleChoiceEventAutomation;
             FormationUpdate += DungeonAutomation.HandleFormationAutomation;
             LevelUpUpdate += DungeonAutomation.HandleLevelUpAutomation;
             NewCharacterUpdate += DungeonAutomation.HandleNewCharacterAutomation;
@@ -64,6 +66,14 @@ namespace RobotDracula.Trainer
             if (BattleAutomationEnabled && GlobalGameManager.Instance.CheckSceneState(SCENE_STATE.Battle))
             {
                 BattleUpdate?.Invoke();
+            }
+
+            if (ChoiceEventAutomationEnabled)
+            {
+                if (DungeonHelper.DungeonUIManager is {_choiceEventController.IsActivated: true})
+                {
+                    MirrorDungeonEventChoiceUpdate?.Invoke();
+                }
             }
 
             if (DungeonAutomationEnabled)
@@ -86,10 +96,6 @@ namespace RobotDracula.Trainer
                     else if (SingletonBehavior<DungeonFormationPanel>.Instance is {gameObject.active: true })
                     {
                         FormationUpdate?.Invoke();
-                    }
-                    else if (DungeonHelper.DungeonUIManager is {_choiceEventController.IsActivated: true})
-                    {
-                        MirrorDungeonEventChoiceUpdate?.Invoke();
                     }
                     else if (DungeonHelper.MirrorDungeonManager is {StageReward.RewardStatusData.IsAllFinished: true})
                     {
