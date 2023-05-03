@@ -31,8 +31,7 @@ namespace RobotDracula.Dungeon.Automation
         public static void HandleDungeonAutomation()
         {
             var result = DungeonProgressHelper.CurrentNodeResult;
-            if (_advanceCooldown <= 0f && 
-                !_waitingForLevelUpResponse && 
+            if (_advanceCooldown <= 0f && !_waitingForLevelUpResponse && 
                 (result == DUNGEON_NODERESULT.WIN || DungeonHelper.CachedCurrentNodeModel.encounter == ENCOUNTER.START))
             {
                 _advanceCooldown = 1f;
@@ -41,7 +40,9 @@ namespace RobotDracula.Dungeon.Automation
                 if (NextChosenNode != null)
                     ExecuteNextEncounter();
             }
-            else if (_advanceCooldown <= 0f && result == DUNGEON_NODERESULT.INBATTLE && !DungeonHelper.CachedCurrentNodeModel._isCleared && !SingletonBehavior<DungeonFormationPanel>.Instance.gameObject.active)
+            // TODO: Check this better because its activating after the formation panel closes but before the battle actually starts
+            else if (_advanceCooldown <= 0f && result == DUNGEON_NODERESULT.INBATTLE && 
+                     !DungeonHelper.CachedCurrentNodeModel._isCleared && !SingletonBehavior<DungeonFormationPanel>.Instance.gameObject.active)
             {
                 _advanceCooldown = 1f;
                 NextChosenNode = DungeonHelper.CachedCurrentNodeModel;
@@ -55,6 +56,7 @@ namespace RobotDracula.Dungeon.Automation
         {
             if (_formationCooldown <= 0f)
             {
+                Plugin.PluginLog.LogWarning("Done formation close");
                 _formationCooldown = 1f;
                 var formationPanel = SingletonBehavior<DungeonFormationPanel>.Instance;
                 var sortedUnits = formationPanel._playerUnitFormation.PlayerUnits.ToArray()
@@ -105,7 +107,6 @@ namespace RobotDracula.Dungeon.Automation
                 return;
 
             var numLevelUps = levelUpView._levelUpCount;
-            Plugin.PluginLog.LogInfo(numLevelUps);
             var PotentialLevelUps = levelUpView._levelUpDataList;
             var data = PotentialLevelUps.ToArray().ToList().OrderByDescending(a => a.NextLevel).ToList();
             var test = data[0];
@@ -113,8 +114,6 @@ namespace RobotDracula.Dungeon.Automation
             levelUpView._confirmView.btn_confirm.OnClick(false);
             levelUpView._confirmView.OpenSetEgoPanel();
             var potentialEgos = levelUpView._confirmView._switchPanel.EgoScrollView._itemList;
-            Plugin.PluginLog.LogInfo(levelUpView._confirmView._switchPanel.EgoScrollView._itemList._size);
-            Plugin.PluginLog.LogInfo(potentialEgos.Count);
             var calculatedLength = 0;
             foreach (var ego in potentialEgos)
             {
@@ -122,7 +121,6 @@ namespace RobotDracula.Dungeon.Automation
                 calculatedLength++;
             }
             
-            Plugin.PluginLog.LogInfo(calculatedLength);
             if (calculatedLength > 0)
                 levelUpView._confirmView._switchPanel.EgoScrollView.OnSelect(potentialEgos[(Index)0].Cast<FormationSwitchableEgoUIScrollViewItem>(), false);
             levelUpView._confirmView.FinishLevelUp();
@@ -166,13 +164,16 @@ namespace RobotDracula.Dungeon.Automation
                 return null;
 
             var sortedSector = nextSector.Where(i => DungeonHelper.MirrorMapManager.IsValidNode(currentNode, _nodeDict[i.nodeId].NodeModel))
-                .OrderByDescending(i => i.GetEncounterType() == ENCOUNTER.EVENT)
+                // Prioritize sinner power-up
+                .OrderByDescending(i => i.GetEncounterType() == ENCOUNTER.EVENT && i.encounterId is 900031)
+                // Prioritize regular events, not new recruit or healing
+                .ThenByDescending(i => i.GetEncounterType() == ENCOUNTER.EVENT && i.encounterId is not 900021 and not (>= 900011 and <= 900013))
+                .ThenByDescending(i => i.GetEncounterType() == ENCOUNTER.EVENT)
                 .ThenByDescending(i => i.GetEncounterType() == ENCOUNTER.BATTLE)
                 .ThenByDescending(i => i.GetEncounterType() == ENCOUNTER.HARD_BATTLE)
                 .ThenByDescending(i => i.GetEncounterType() == ENCOUNTER.AB_BATTLE)
                 .ThenByDescending(i => i.GetEncounterType() == ENCOUNTER.BOSS)
-                .ThenByDescending(i => i.GetEncounterType() == ENCOUNTER.SAVE)
-                .ThenByDescending(i => i.GetEncounterType() == ENCOUNTER.START);
+                .ThenByDescending(i => i.GetEncounterType() == ENCOUNTER.SAVE);
             var nodeInfo = sortedSector.First();
             var chosenNode = _nodeDict[nodeInfo.nodeId].NodeModel;
 

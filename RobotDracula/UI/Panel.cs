@@ -27,7 +27,7 @@ namespace RobotDracula.UI
 
         public override string Name { get; } = "RD Trainer";
 
-        public override int MinWidth { get; } = 300;
+        public override int MinWidth { get; } = 350;
 
         public override int MinHeight { get; } = 350;
 
@@ -96,6 +96,8 @@ namespace RobotDracula.UI
             var dungeonLabel4 = UiHelper.CreateLabel(dungeonGroup, "dungeonLabel4",
                 () => $"Type:\n{DungeonHelper.CachedCurrentNodeModel.encounter}");
             var dungeonLabel5 = UiHelper.CreateLabel(dungeonGroup, "dungeonLabel5",
+                () => $"Encounter:\n{DungeonHelper.CachedCurrentNodeModel.encounterID}");
+            var dungeonLabel6 = UiHelper.CreateLabel(dungeonGroup, "dungeonLabel6",
                 () => $"Result:\n{DungeonProgressHelper.CurrentNodeResult}");
 
             var predictLabelGroup = UIFactory.CreateUIObject("predictLabelGroup", ContentRoot);
