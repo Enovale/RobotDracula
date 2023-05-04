@@ -85,13 +85,16 @@ namespace RobotDracula.Trainer
                         LevelUpUpdate?.Invoke();
                     }
                     // The last two don't use the IsOpened paradigm. Why? Who knows.
-                    else if (DungeonHelper.MirrorDungeonManager is {StageReward._acquireNewCharacterView.isActiveAndEnabled: true})
-                    {
-                        NewCharacterUpdate?.Invoke();
-                    }
-                    else if (DungeonHelper.MirrorDungeonManager is {StageReward._acquireEgoGiftView.isActiveAndEnabled: true})
+                    // Also the other of the ego gift and new recruit matter apparently.
+                    // After completing a floor and getting a gift and a recruit, both are opened at the same time
+                    // but the ego gift is rendered on top so it must be checked first.
+                    else if (DungeonHelper.MirrorDungeonManager is {StageReward._acquireEgoGiftView.gameObject.active: true})
                     {
                         EgoGiftUpdate?.Invoke();
+                    }
+                    else if (DungeonHelper.MirrorDungeonManager is {StageReward._acquireNewCharacterView.gameObject.active: true})
+                    {
+                        NewCharacterUpdate?.Invoke();
                     }
                     else if (SingletonBehavior<DungeonFormationPanel>.Instance is {gameObject.active: true })
                     {

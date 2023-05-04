@@ -4,7 +4,6 @@ using Dungeon;
 using Dungeon.Map;
 using Il2CppSystem.Text;
 using RobotDracula.Battle;
-using RobotDracula.Battle.Automation;
 using RobotDracula.Dungeon;
 using RobotDracula.Dungeon.Automation;
 using RobotDracula.General;

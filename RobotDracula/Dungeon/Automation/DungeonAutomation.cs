@@ -19,6 +19,8 @@ namespace RobotDracula.Dungeon.Automation
         private static float _formationCooldown;
         
         private static float _levelUpCooldown;
+        
+        private static float _egoGiftCooldown;
 
         private static bool _waitingForLevelUpResponse;
 
@@ -100,6 +102,16 @@ namespace RobotDracula.Dungeon.Automation
 
         public static void HandleEgoGiftAutomation()
         {
+            if (_egoGiftCooldown <= 0f)
+            {
+                _egoGiftCooldown = 1f;
+                
+                var view = DungeonHelper.MirrorDungeonManager.StageReward._acquireEgoGiftView;
+                view._scrollView.GetItem(0).OnClick(false);
+                view.btn_confirm.OnClick(false);
+            }
+
+            _egoGiftCooldown -= Time.fixedDeltaTime;
         }
 
         public static void TryDoOneLevelUp()

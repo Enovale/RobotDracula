@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using RobotDracula.Trainer;
 using UnityEngine;
 
 namespace RobotDracula.Battle.Automation
