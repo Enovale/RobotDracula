@@ -34,7 +34,7 @@ namespace RobotDracula.Dungeon.Automation
             if (_advanceCooldown <= 0f && !_waitingForLevelUpResponse && 
                 (result == DUNGEON_NODERESULT.WIN || DungeonHelper.CachedCurrentNodeModel.encounter == ENCOUNTER.START))
             {
-                _advanceCooldown = 1f;
+                _advanceCooldown = 2f;
                 NextChosenNode = GetNextNode();
                 
                 if (NextChosenNode != null)
@@ -44,7 +44,9 @@ namespace RobotDracula.Dungeon.Automation
             else if (_advanceCooldown <= 0f && result == DUNGEON_NODERESULT.INBATTLE && 
                      !DungeonHelper.CachedCurrentNodeModel._isCleared && !SingletonBehavior<DungeonFormationPanel>.Instance.gameObject.active)
             {
-                _advanceCooldown = 1f;
+                _advanceCooldown = 2f;
+                
+                Plugin.PluginLog.LogWarning("Done enter current node");
                 NextChosenNode = DungeonHelper.CachedCurrentNodeModel;
                 ExecuteNextEncounter();
             }
@@ -174,11 +176,12 @@ namespace RobotDracula.Dungeon.Automation
                 .ThenByDescending(i => i.GetEncounterType() == ENCOUNTER.AB_BATTLE)
                 .ThenByDescending(i => i.GetEncounterType() == ENCOUNTER.BOSS)
                 .ThenByDescending(i => i.GetEncounterType() == ENCOUNTER.SAVE);
-            var nodeInfo = sortedSector.First();
-            var chosenNode = _nodeDict[nodeInfo.nodeId].NodeModel;
+            var nodeInfo = sortedSector.FirstOrDefault();
 
-            if (chosenNode == null && DungeonProgressHelper.CurrentNodeResult == DUNGEON_NODERESULT.INBATTLE)
-                chosenNode = currentNode;
+            if (nodeInfo == null && DungeonProgressHelper.CurrentNodeResult == DUNGEON_NODERESULT.INBATTLE)
+                return currentNode;
+            
+            var chosenNode = _nodeDict[nodeInfo.nodeId].NodeModel;
 
             return chosenNode;
         }

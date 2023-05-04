@@ -2,8 +2,10 @@
 using BepInEx;
 using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
+using HarmonyLib;
 using Il2CppInterop.Runtime.Injection;
 using Il2CppSystem.IO;
+using RobotDracula.General;
 using RobotDracula.UI;
 using UnityEngine;
 using UniverseLib;
@@ -54,6 +56,8 @@ namespace RobotDracula
             // Plugin startup logic
             Log.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
 
+            Harmony.CreateAndPatchAll(typeof(UtilHelper));
+            
             Universe.Init(5f, OnInitialized, UniverseLog, new UniverseLibConfig()
             {
                 Disable_EventSystem_Override = true,
