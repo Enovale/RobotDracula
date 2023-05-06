@@ -1,8 +1,8 @@
 using System;
 using ChoiceEvent;
-using RobotDracula.Dungeon;
 using RobotDracula.General;
 using UnityEngine;
+using static PERSONALITY_CHOICE_PROGRESSING_SECTION;
 
 namespace RobotDracula.ChoiceEvent.Automation
 {
@@ -10,33 +10,38 @@ namespace RobotDracula.ChoiceEvent.Automation
     {
         private static float _eventChoiceCooldown;
         
-        public static void HandleChoiceEventAutomation()
+        public static void HandleChoiceEventAutomation(ChoiceEventController controller)
         {
-            // TODO: I wrote this shit at 5 am help me pls 
-            Plugin.PluginLog.LogInfo(DungeonHelper.DungeonUIManager._choiceEventController._choiceSectionUI._topPanelScrollBox.isActiveAndEnabled);
-            Plugin.PluginLog.LogInfo(DungeonHelper.DungeonUIManager._choiceEventController._choiceSectionUI._topPanelScrollBox._isSkipContent);
-            Plugin.PluginLog.LogInfo(DungeonHelper.DungeonUIManager._choiceEventController._choiceSectionUI._behaveScrollBox.isActiveAndEnabled);
-            Plugin.PluginLog.LogInfo(DungeonHelper.DungeonUIManager._choiceEventController._choiceSectionUI._behaveScrollBox._isSkipContent);
             if (_eventChoiceCooldown <= 0)
             {
-                _eventChoiceCooldown = 1f;
+                _eventChoiceCooldown = 0.75f;
                 
-                var choiceEventController = DungeonHelper.DungeonUIManager._choiceEventController;
-                var choiceSectionUI = choiceEventController._choiceSectionUI;
+                var choiceSectionUI = controller._choiceSectionUI;
                 var personalityChoiceManager = choiceSectionUI.PersonalityChoiceButtonManager;
-                var resultSectionUI = choiceEventController._resultSectionUI;
+                var resultSectionUI = controller._resultSectionUI;
                 if (choiceSectionUI._actionChoiceButtonManager.isActiveAndEnabled)
                 {
-                    if (_choiceActionDict.TryGetValue(choiceEventController.GetCurrentEventID(), out var i))
+                    if (_choiceActionDict.TryGetValue(controller.GetCurrentEventID(), out var i))
                     {
-                        choiceSectionUI.OnClickActionChoiceButton(i);
+                        if (choiceSectionUI._actionProgressData.ActionChoiceActionList._items[i])
+                        {
+                            choiceSectionUI.OnClickActionChoiceButton(i);
+                        }
+                        else
+                        {
+                            for (var j = 0; j < choiceSectionUI._actionProgressData.ActionChoiceActionList.Count; j++)
+                            {
+                                if (choiceSectionUI._actionProgressData.ActionChoiceActionList._items[j])
+                                {
+                                    choiceSectionUI.OnClickActionChoiceButton(j);
+                                }
+                            }
+                        }
                     }
                 }
-                // TODO: Either gets called all the time or never cant figure out what to check for here
-                else if (personalityChoiceManager.cg_self.interactable)
+                else if (personalityChoiceManager._currentSectionType is CHOICE or RESULT_CALCULATING)
                 {
-                    Plugin.PluginLog.LogWarning(personalityChoiceManager._currentSectionType);
-                    if (!resultSectionUI.isActiveAndEnabled)
+                    if (personalityChoiceManager.cg_self.interactable)
                     {
                         var buttons = personalityChoiceManager._personalityChoiceButtons;
                         var highestIndex = 0;
@@ -44,7 +49,7 @@ namespace RobotDracula.ChoiceEvent.Automation
                         for (var i = 0; i < personalityChoiceManager._currentButtonInUseCount; ++i)
                         {
                             var unitDataModel = buttons[(Index)i].Cast<PersonalityChoiceButton>().UnitDataModel;
-                            var winRate = choiceEventController._eventProgressData.PersonalityChoiceData.GetWinRate(unitDataModel);
+                            var winRate = controller._eventProgressData.PersonalityChoiceData.GetWinRate(unitDataModel);
 
                             if (highestRate < winRate && !buttons[(Index)i].Cast<PersonalityChoiceButton>().CantSelectButton())
                             {
@@ -67,19 +72,21 @@ namespace RobotDracula.ChoiceEvent.Automation
                     resultSectionUI.btn_battleEnter.onClick.Invoke();
                 }
 
-                if (choiceSectionUI._topPanelScrollBox.isActiveAndEnabled && !choiceSectionUI._topPanelScrollBox._isSkipContent)
+                if (choiceSectionUI._topPanelScrollBox is { isActiveAndEnabled: true, coroutine_flickeringTriangle: not null })
                 {
                     choiceSectionUI._topPanelScrollBox.OnClickStorySkipButton();
-                    // TODO: Need to simulate a click or find the coroutine that uses this because
-                    // It won't skip and do the things until a click even if its skipping
                     UtilHelper.MouseButtonUp = true;
                 }
 
-                if (resultSectionUI._activeResultDesc.isActiveAndEnabled && !resultSectionUI._activeResultDesc._isSkipContent)
+                if (resultSectionUI._activeResultDesc is { isActiveAndEnabled: true, coroutine_flickeringTriangle: not null })
                 {
                     resultSectionUI._activeResultDesc.OnClickStorySkipButton();
-                    // TODO: Need to simulate a click or find the coroutine that uses this because
-                    // It won't skip and do the things until a click even if its skipping
+                    UtilHelper.MouseButtonUp = true;
+                }
+
+                if (resultSectionUI._scenarioScrollBox is { isActiveAndEnabled: true, coroutine_flickeringTriangle: not null })
+                {
+                    resultSectionUI._scenarioScrollBox.OnClickStorySkipButton();
                     UtilHelper.MouseButtonUp = true;
                 }
             }

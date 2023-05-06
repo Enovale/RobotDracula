@@ -5,15 +5,14 @@ using Dungeon.Map;
 using Dungeon.Mirror.Map.UI;
 using Il2CppSystem.Collections.Generic;
 using MainUI;
-using Server;
 using UnityEngine;
+using static Dungeon.Map.ENCOUNTER;
+using static Server.DUNGEON_NODERESULT;
 
 namespace RobotDracula.Dungeon.Automation
 {
     public static class DungeonAutomation
     {
-        public static NodeModel NextChosenNode;
-
         private static float _advanceCooldown;
         
         private static float _formationCooldown;
@@ -21,6 +20,8 @@ namespace RobotDracula.Dungeon.Automation
         private static float _levelUpCooldown;
         
         private static float _egoGiftCooldown;
+        
+        private static float _egoGiftPopupCooldown;
 
         private static bool _waitingForLevelUpResponse;
 
@@ -34,22 +35,18 @@ namespace RobotDracula.Dungeon.Automation
         {
             var result = DungeonProgressHelper.CurrentNodeResult;
             if (_advanceCooldown <= 0f && !_waitingForLevelUpResponse && 
-                (result == DUNGEON_NODERESULT.WIN || DungeonHelper.CachedCurrentNodeModel.encounter == ENCOUNTER.START))
+                (result is WIN or NONE || DungeonHelper.CachedCurrentNodeModel.encounter == START))
             {
                 _advanceCooldown = 2f;
-                NextChosenNode = GetNextNode();
-                
-                if (NextChosenNode != null)
-                    ExecuteNextEncounter();
+                ExecuteNextEncounter(GetNextNode());
             }
             // TODO: Check this better because its activating after the formation panel closes but before the battle actually starts
-            else if (_advanceCooldown <= 0f && result == DUNGEON_NODERESULT.INBATTLE && 
-                     !DungeonHelper.CachedCurrentNodeModel._isCleared && !SingletonBehavior<DungeonFormationPanel>.Instance.gameObject.active)
+            else if (_advanceCooldown <= 0f && result == INBATTLE && 
+                     !DungeonHelper.CachedCurrentNodeModel._isCleared &&
+                     !SingletonBehavior<DungeonFormationPanel>.Instance.gameObject.active)
             {
                 _advanceCooldown = 2f;
                 
-                Plugin.PluginLog.LogWarning("Done enter current node");
-                NextChosenNode = DungeonHelper.CachedCurrentNodeModel;
                 ExecuteNextEncounter();
             }
 
@@ -60,7 +57,6 @@ namespace RobotDracula.Dungeon.Automation
         {
             if (_formationCooldown <= 0f)
             {
-                Plugin.PluginLog.LogWarning("Done formation close");
                 _formationCooldown = 1f;
                 var formationPanel = SingletonBehavior<DungeonFormationPanel>.Instance;
                 var sortedUnits = formationPanel._playerUnitFormation.PlayerUnits.ToArray()
@@ -88,7 +84,7 @@ namespace RobotDracula.Dungeon.Automation
             }
             else if (_levelUpCooldown <= 0f && levelUpView.IsOpened && levelUpView._confirmView._afterConfirmView.isActiveAndEnabled)
             {
-                _levelUpCooldown = 1f;
+                _levelUpCooldown = 0.5f;
                 _waitingForLevelUpResponse = false;
                 DungeonHelper.MirrorDungeonManager.StageReward._characterLevelUpView._confirmView.btn_close.OnClick(false);
             }
@@ -100,18 +96,29 @@ namespace RobotDracula.Dungeon.Automation
         {
         }
 
-        public static void HandleEgoGiftAutomation()
+        public static void HandleEgoGiftAutomation(SelectEgoGiftPanel panel)
         {
             if (_egoGiftCooldown <= 0f)
             {
                 _egoGiftCooldown = 1f;
                 
-                var view = DungeonHelper.MirrorDungeonManager.StageReward._acquireEgoGiftView;
-                view._scrollView.GetItem(0).OnClick(false);
-                view.btn_confirm.OnClick(false);
+                panel._scrollView.GetItem(0).OnClick(false);
+                panel.btn_confirm.OnClick(false);
             }
 
             _egoGiftCooldown -= Time.fixedDeltaTime;
+        }
+
+        public static void HandleCloseAnnoyingEgoGiftPopup()
+        {
+            if (_egoGiftPopupCooldown <= 0f)
+            {
+                _egoGiftPopupCooldown = 1f;
+                
+                DungeonHelper.DungeonUIManager._egoGiftPopup.btn_cancel.OnClick(false);
+            }
+
+            _egoGiftPopupCooldown -= Time.fixedDeltaTime;
         }
 
         public static void TryDoOneLevelUp()
@@ -139,38 +146,35 @@ namespace RobotDracula.Dungeon.Automation
                 levelUpView._confirmView._switchPanel.EgoScrollView.OnSelect(potentialEgos[(Index)0].Cast<FormationSwitchableEgoUIScrollViewItem>(), false);
             levelUpView._confirmView.FinishLevelUp();
             _waitingForLevelUpResponse = true;
-            //levelUpView._confirmView.UpdateConfirmedData();
-            //levelUpView._confirmView.btn_close.OnClick(false);
         }
 
-        public static void ExecuteNextEncounter()
+        public static void ExecuteNextEncounter(NodeModel node = null)
         {
-            if (NextChosenNode is null)
+            if (node is null)
             {
-                if (DungeonProgressHelper.CurrentNodeResult != DUNGEON_NODERESULT.INBATTLE)
+                if (DungeonProgressHelper.CurrentNodeResult != INBATTLE)
                 {
                     Plugin.PluginLog.LogError("No available nodes to progress to :(");
                     return;
                 }
 
-                NextChosenNode = DungeonHelper.CachedCurrentNodeModel;
-                Plugin.PluginLog.LogWarning("Executing current node encounter! Beware!!");
+                Plugin.PluginLog.LogWarning("Executing Current Node Instead of Next");
+                node = DungeonHelper.CachedCurrentNodeModel;
             }
 
             var currentNode = DungeonHelper.CachedCurrentNodeModel.Cast<INodeModel>();
-            var nextNode = NextChosenNode.Cast<INodeModel>();
+            var nextNode = node.Cast<INodeModel>();
             // Seems to move the current node and ensure that NODERESULT gets set (sends move to the server)
             DungeonProgressManager.UpdateCurrentNode(currentNode, nextNode, new());
 
             // Opens the formation panel or enter abno event screen.
             DungeonHelper.MirrorMapManager._encounterManager.ExecuteEncounter(nextNode);
-
-            NextChosenNode = null;
         }
 
         public static NodeModel GetNextNode()
         {
-            var currentNode = DungeonHelper.CachedCurrentNodeModel;
+            // TODO: Use cache here but the cache breaks upon beating MD and restarting for some reason
+            var currentNode = DungeonHelper.CurrentNodeModel;
             var nextSector = _currentFloorNodes.ToArray()
                 .Where(n => n.sectorNumber == DungeonProgressManager.SectorNumber + 1).ToList();
 
@@ -179,18 +183,18 @@ namespace RobotDracula.Dungeon.Automation
 
             var sortedSector = nextSector.Where(i => DungeonHelper.MirrorMapManager.IsValidNode(currentNode, _nodeDict[i.nodeId].NodeModel))
                 // Prioritize sinner power-up
-                .OrderByDescending(i => i.GetEncounterType() == ENCOUNTER.EVENT && i.encounterId is 900031)
+                .OrderByDescending(i => i.GetEncounterType() == EVENT && i.encounterId is 900031)
                 // Prioritize regular events, not new recruit or healing
-                .ThenByDescending(i => i.GetEncounterType() == ENCOUNTER.EVENT && i.encounterId is not 900021 and not (>= 900011 and <= 900013))
-                .ThenByDescending(i => i.GetEncounterType() == ENCOUNTER.EVENT)
-                .ThenByDescending(i => i.GetEncounterType() == ENCOUNTER.BATTLE)
-                .ThenByDescending(i => i.GetEncounterType() == ENCOUNTER.HARD_BATTLE)
-                .ThenByDescending(i => i.GetEncounterType() == ENCOUNTER.AB_BATTLE)
-                .ThenByDescending(i => i.GetEncounterType() == ENCOUNTER.BOSS)
-                .ThenByDescending(i => i.GetEncounterType() == ENCOUNTER.SAVE);
+                .ThenByDescending(i => i.GetEncounterType() == EVENT && i.encounterId is not 900021 and not (>= 900011 and <= 900013))
+                .ThenByDescending(i => i.GetEncounterType() == EVENT)
+                .ThenByDescending(i => i.GetEncounterType() == BATTLE)
+                .ThenByDescending(i => i.GetEncounterType() == HARD_BATTLE)
+                .ThenByDescending(i => i.GetEncounterType() == AB_BATTLE)
+                .ThenByDescending(i => i.GetEncounterType() == BOSS)
+                .ThenByDescending(i => i.GetEncounterType() == SAVE);
             var nodeInfo = sortedSector.FirstOrDefault();
 
-            if (nodeInfo == null && DungeonProgressHelper.CurrentNodeResult == DUNGEON_NODERESULT.INBATTLE)
+            if (nodeInfo == null && DungeonProgressHelper.CurrentNodeResult == INBATTLE)
                 return currentNode;
             
             var chosenNode = _nodeDict[nodeInfo.nodeId].NodeModel;

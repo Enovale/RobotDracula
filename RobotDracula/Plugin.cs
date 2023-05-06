@@ -1,5 +1,6 @@
 ﻿using System;
 using BepInEx;
+using BepInEx.Configuration;
 using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using HarmonyLib;
@@ -18,13 +19,7 @@ namespace RobotDracula
     [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
     public class Plugin : BasePlugin
     {
-        const string IL2CPP_LIBS_FOLDER =
-#if UNHOLLOWER
-            "unhollowed"
-#else
-                "interop"
-#endif
-            ;
+        private const string IL2CPP_LIBS_FOLDER = "interop";
 
         public string UnhollowedModulesFolder => Path.Combine(Paths.BepInExRootPath, IL2CPP_LIBS_FOLDER);
 
@@ -46,6 +41,12 @@ namespace RobotDracula
             }
         }
 
+        public static ConfigEntry<bool> BattleAutomationEnabled;
+        
+        public static ConfigEntry<bool> EventAutomationEnabled;
+        
+        public static ConfigEntry<bool> DungeonAutomationEnabled;
+
         public Plugin()
         {
             PluginLog = Log;
@@ -54,7 +55,11 @@ namespace RobotDracula
         public override void Load()
         {
             // Plugin startup logic
-            Log.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
+            Log.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} loading...");
+
+            BattleAutomationEnabled = Config.Bind("Automation", nameof(BattleAutomationEnabled), false);
+            EventAutomationEnabled = Config.Bind("Automation", nameof(EventAutomationEnabled), false);
+            DungeonAutomationEnabled = Config.Bind("Automation", nameof(DungeonAutomationEnabled), false);
 
             Harmony.CreateAndPatchAll(typeof(UtilHelper));
             
@@ -64,6 +69,8 @@ namespace RobotDracula
                 Force_Unlock_Mouse = true,
                 Unhollowed_Modules_Folder = UnhollowedModulesFolder
             });
+            
+            Log.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
         }
 
         private void UniverseLog(string message, LogType type)

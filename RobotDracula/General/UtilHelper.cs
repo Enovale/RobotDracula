@@ -1,4 +1,5 @@
 using HarmonyLib;
+using UnityEngine;
 
 namespace RobotDracula.General
 {
@@ -12,7 +13,19 @@ namespace RobotDracula.General
         {
             if (MouseButtonUp)
             {
-                MouseButtonUp = false;
+                __result = true;
+                return false;
+            }
+
+            return true;
+        }
+        
+        [HarmonyPatch(typeof(Input), nameof(Input.GetMouseButtonUp))]
+        [HarmonyPrefix]
+        public static bool UnityMouseUpWrapper(ref bool __result)
+        {
+            if (MouseButtonUp)
+            {
                 __result = true;
                 return false;
             }

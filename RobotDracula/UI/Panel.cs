@@ -1,11 +1,9 @@
 using System;
+using BattleUI;
 using ChoiceEvent;
-using Dungeon;
-using Dungeon.Map;
 using Il2CppSystem.Text;
 using RobotDracula.Battle;
 using RobotDracula.Dungeon;
-using RobotDracula.Dungeon.Automation;
 using RobotDracula.General;
 using RobotDracula.Trainer;
 using UnityEngine;
@@ -19,14 +17,11 @@ namespace RobotDracula.UI
     {
         public Panel(UIBase owner) : base(owner)
         {
-            var display = Display.main;
-            DefaultPosition = new Vector2((display.renderingWidth / 2) - MinWidth,
-                (display.renderingHeight - MinHeight) / 2);
         }
 
         public override string Name { get; } = "RD Trainer";
 
-        public override int MinWidth { get; } = 350;
+        public override int MinWidth { get; } = 230;
 
         public override int MinHeight { get; } = 350;
 
@@ -34,25 +29,24 @@ namespace RobotDracula.UI
 
         public override Vector2 DefaultAnchorMax { get; } = Vector2.zero;
 
-        public override Vector2 DefaultPosition { get; }
+        public override Vector2 DefaultPosition
+            => new(Display.main.renderingWidth / 2f - MinWidth, (Display.main.renderingHeight - MinHeight) / 2f);
 
         public override bool CanDragAndResize { get; } = true;
 
         private ChoiceEventProgressData _choiceEventData = null;
 
-        private bool _watchPrediction;
         private bool _watchChoiceDebug;
-        private NodeModel _predictedNode;
 
         protected override void ConstructPanelContent()
         {
-            var trainerToggle = UiHelper.CreateToggle(TitleBar, "trainerToggle", "Trainer", true,
+            var trainerToggle = UiHelper.CreateToggle(TitleBar, "trainerToggle", "", true,
                 () => PluginBootstrap.TrainerEnabled,
                 b => PluginBootstrap.TrainerEnabled = b, out _, out _);
-            trainerToggle.transform.SetSiblingIndex(1);
+            trainerToggle.transform.SetSiblingIndex(0);
             UIFactory.SetLayoutElement(trainerToggle.gameObject, flexibleWidth: 200, flexibleHeight: 8);
 #if DEBUG
-            var reactiveUiToggle = UiHelper.CreateToggle(TitleBar, "reactiveUiToggle", "ReactiveUI", true,
+            var reactiveUiToggle = UiHelper.CreateToggle(TitleBar, "reactiveUiToggle", "ReactUI", true,
                 () => PluginBootstrap.ReactiveUIEnabled,
                 b => PluginBootstrap.ReactiveUIEnabled = b, out _, out _);
             reactiveUiToggle.transform.SetSiblingIndex(2);
@@ -81,43 +75,35 @@ namespace RobotDracula.UI
                 () => $"Current Stage Phase: {BattleHelper.StagePhase}");
             UIFactory.SetLayoutElement(myLabel.gameObject);
             var eventLabel = UiHelper.CreateLabel(ContentRoot, "eventLabel",
-                () => $"Current Event ID: {(DungeonHelper.CachedCurrentNodeModel.encounter == ENCOUNTER.EVENT ? DungeonHelper.DungeonUIManager._choiceEventController._eventProgressData.CurrentEventID : null)}");
+                () =>
+                {
+                    var id = -1;
+                    if (GlobalGameManager.Instance.sceneState is SCENE_STATE.Battle or SCENE_STATE.MirrorDungeon)
+                    {
+                        if (DungeonHelper.DungeonUIManager is { _choiceEventController.IsActivated: true })
+                        {
+                            id = DungeonHelper.DungeonUIManager._choiceEventController.GetCurrentEventID();
+                        }
+                        else if (SingletonBehavior<BattleUIRoot>.Instance is
+                                 { AbUIController._choiceEventController.IsActivated: true })
+                        {
+                            id = SingletonBehavior<BattleUIRoot>.Instance.AbUIController._choiceEventController
+                                .GetCurrentEventID();
+                        }
+                    }
+
+                    return $"Current Event ID: {id}";
+                });
             UIFactory.SetLayoutElement(eventLabel.gameObject);
             var dungeonLabel = UIFactory.CreateLabel(ContentRoot, "dungeonLabel", "Dungeon Info:");
             UIFactory.SetLayoutElement(dungeonLabel.gameObject);
             var dungeonGroup = UIFactory.CreateHorizontalGroup(ContentRoot, "dungeonGroup", true, false, true, true);
-            var dungeonLabel1 = UiHelper.CreateLabel(dungeonGroup, "dungeonLabel1",
-                () => $"Floor:\n{DungeonProgressManager.FloorNumber}");
-            var dungeonLabel2 = UiHelper.CreateLabel(dungeonGroup, "dungeonLabel2",
-                () => $"Sector:\n{DungeonProgressManager.SectorNumber}");
-            var dungeonLabel3 = UiHelper.CreateLabel(dungeonGroup, "dungeonLabel3",
-                () => $"Node:\n{DungeonProgressManager.NodeID}");
             var dungeonLabel4 = UiHelper.CreateLabel(dungeonGroup, "dungeonLabel4",
                 () => $"Type:\n{DungeonHelper.CachedCurrentNodeModel.encounter}");
             var dungeonLabel5 = UiHelper.CreateLabel(dungeonGroup, "dungeonLabel5",
                 () => $"Encounter:\n{DungeonHelper.CachedCurrentNodeModel.encounterID}");
             var dungeonLabel6 = UiHelper.CreateLabel(dungeonGroup, "dungeonLabel6",
                 () => $"Result:\n{DungeonProgressHelper.CurrentNodeResult}");
-
-            var predictLabelGroup = UIFactory.CreateUIObject("predictLabelGroup", ContentRoot);
-            UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(predictLabelGroup, false, false, true, true, 2);
-            var predictLabel = UIFactory.CreateLabel(predictLabelGroup, "predictLabel", "Next Node:");
-            UIFactory.SetLayoutElement(predictLabel.gameObject);
-            var predictButton = UiHelper.CreateButton(predictLabelGroup, "predictButton", "↻",
-                () => _predictedNode = DungeonAutomation.GetNextNode());
-            var predictToggle = UiHelper.CreateToggle(predictLabelGroup, "predictToggle", "Watch", false,
-                val => _watchPrediction = val, out _, out _);
-            UIFactory.SetLayoutElement(predictToggle, minHeight: 25, flexibleWidth: 9999);
-            UIFactory.SetLayoutElement(predictButton.GameObject, preferredWidth: 24, preferredHeight: 24);
-            var predictGroup = UIFactory.CreateHorizontalGroup(ContentRoot, "predictGroup", true, false, true, true);
-            var predictLabel1 = UiHelper.CreateLabel(predictGroup, "predictLabel1",
-                () => $"Floor:\n{_predictedNode.floorNumber}");
-            var predictLabel2 = UiHelper.CreateLabel(predictGroup, "predictLabel2",
-                () => $"Sector:\n{_predictedNode.sectorNumber}");
-            var predictLabel3 = UiHelper.CreateLabel(predictGroup, "predictLabel3",
-                () => $"NodeID:\n{_predictedNode.id}");
-            var predictLabel4 = UiHelper.CreateLabel(predictGroup, "predictLabel4",
-                () => $"Type:\n{_predictedNode.encounter}");
             
             var choiceLabelGroup = UIFactory.CreateUIObject("choiceLabelGroup", ContentRoot);
             UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(choiceLabelGroup, false, false, true, true, 2);
@@ -170,9 +156,6 @@ namespace RobotDracula.UI
             var myToggle3 = UiHelper.CreateToggle(toggleRow, "myToggle2", "Debug View", false,
                 val => GlobalGameHelper.DebugCanvasEnabled = val, out _, out _);
             UIFactory.SetLayoutElement(myToggle3, minHeight: 25, flexibleWidth: 9999);
-            var fpsCapToggle = UiHelper.CreateToggle(toggleRow, "fpsCapToggle", "FPS Cap", true,
-                val => GeneralAutomation.FPSCapEnabled = val, out _, out _);
-            UIFactory.SetLayoutElement(fpsCapToggle, minHeight: 25, flexibleWidth: 9999);
         }
 
         protected override void OnClosePanelClicked()
@@ -182,18 +165,6 @@ namespace RobotDracula.UI
 
         public override void Update()
         {
-            if (_watchPrediction)
-            {
-                try
-                {
-                    _predictedNode = DungeonAutomation.GetNextNode();
-                }
-                catch (Exception)
-                {
-                    // ignored
-                }
-            }
-
             if (_watchChoiceDebug)
             {
                 try
