@@ -162,7 +162,9 @@ namespace RobotDracula.Dungeon.Automation
                             Plugin.PluginLog.LogWarning($"Personality for {i} sinner could not be found.");
                             break;
                         }
-                        personalityItem.OnClick(false);
+                        
+                        if (!personalityItem.Cast<FormationSwitchablePersonalityUIScrollViewItem>()._selectedFrame.enabled)
+                            personalityItem.OnClick(false);
                         ProgressSwitchPanel(switchPanel);
 
                         while (switchPanel._currentListType == FORMATION_LIST_TYPE.EGO && switchPanel.IsOpened)
