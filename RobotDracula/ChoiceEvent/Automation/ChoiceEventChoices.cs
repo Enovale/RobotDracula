@@ -38,6 +38,7 @@ namespace RobotDracula.ChoiceEvent.Automation
             {901028, 0}, // Flowers and Brambles - Pick a Flower
             {901031, 0}, // Machines exist for a purpose - Carry Luggage
             {901032, 0}, // Electric Sheep - Cut the cables
+            {901033, 0}, // Electric Centipede - Press the lightning shaped button
             {901034, 0}, // KQE Part One - Say [Hello]
             {90103401, 1}, // KQE Part Two - Take it and leave.
             {901035, 1}, // Scissors Girl - Play paper

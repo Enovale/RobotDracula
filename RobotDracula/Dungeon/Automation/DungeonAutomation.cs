@@ -165,7 +165,7 @@ namespace RobotDracula.Dungeon.Automation
                         personalityItem.OnClick(false);
                         ProgressSwitchPanel(switchPanel);
 
-                        if (switchPanel._currentListType == FORMATION_LIST_TYPE.EGO)
+                        while (switchPanel._currentListType == FORMATION_LIST_TYPE.EGO && switchPanel.IsOpened)
                         {
                             SelectEgoAndConfirm(switchPanel);
                         }

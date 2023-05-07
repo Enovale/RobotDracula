@@ -91,17 +91,20 @@ namespace RobotDracula.Trainer
 
             if (ChoiceEventAutomationEnabled)
             {
-                if (GlobalGameManager.Instance.sceneState is SCENE_STATE.Battle or SCENE_STATE.MirrorDungeon)
+                if (GlobalGameManager.Instance.sceneState is SCENE_STATE.Battle)
                 {
-                    if (DungeonHelper.DungeonUIManager is { _choiceEventController.IsActivated: true })
-                    {
-                        MirrorDungeonEventChoiceUpdate?.Invoke(DungeonHelper.DungeonUIManager._choiceEventController);
-                    }
-                    else if (SingletonBehavior<BattleUIRoot>.Instance is
+                    if (SingletonBehavior<BattleUIRoot>.Instance is
                              { AbUIController._choiceEventController.IsActivated: true })
                     {
                         MirrorDungeonEventChoiceUpdate?.Invoke(SingletonBehavior<BattleUIRoot>.Instance.AbUIController
                             ._choiceEventController);
+                    }
+                }
+                else if (GlobalGameManager.Instance.sceneState is SCENE_STATE.MirrorDungeon)
+                {
+                    if (DungeonHelper.DungeonUIManager is { _choiceEventController.IsActivated: true })
+                    {
+                        MirrorDungeonEventChoiceUpdate?.Invoke(DungeonHelper.DungeonUIManager._choiceEventController);
                     }
                 }
             }

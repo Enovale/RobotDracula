@@ -8,6 +8,7 @@ using RobotDracula.UI;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.ResourceLocations;
+using UnityEngine.SceneManagement;
 
 namespace RobotDracula
 {
@@ -20,6 +21,8 @@ namespace RobotDracula
         {
             if (Input.GetKeyDown(KeyCode.F8))
                 Plugin.ShowTrainer = !Plugin.ShowTrainer;
+            if (Input.GetKeyDown(KeyCode.Backspace))
+                Singleton<StageController>.Instance.EndStageForcely();
             else if (Input.GetKeyDown(KeyCode.F9))
             {
                 foreach (var resourceLocator in Addressables.ResourceLocators.ToList())
@@ -72,7 +75,7 @@ namespace RobotDracula
             if (ReactiveUIEnabled && Plugin.ShowTrainer)
                 UiHelper.Update();
 
-            if (TrainerEnabled && GlobalGameManager.Instance != null)
+            if (TrainerEnabled && SceneManager.GetActiveScene().name != "LoadingScene" && GlobalGameManager.Instance != null)
                 TrainerManager.Update();
         }
     }
