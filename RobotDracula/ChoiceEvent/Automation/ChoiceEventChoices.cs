@@ -15,6 +15,7 @@ namespace RobotDracula.ChoiceEvent.Automation
             
             {901002, 1}, // The Land of Gold - Avert your eyes
             {901003, 0}, // Ghostly Mist - Walk into the mist
+            {901004, 0}, // Doctor - Accept Blood
             {901005, 0}, // Coffin - Open Coffin
             {901006, 1}, // Business Crane - Shake Your Head
             {901007, 0}, // Yellow Butterflies - Take a break

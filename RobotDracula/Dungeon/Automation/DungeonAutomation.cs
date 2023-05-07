@@ -37,7 +37,8 @@ namespace RobotDracula.Dungeon.Automation
         {
             var result = DungeonProgressHelper.CurrentNodeResult;
             if (_advanceCooldown <= 0f && !_waitingForLevelUpResponse && 
-                DungeonHelper.CachedCurrentNodeModel.encounter is not BOSS &&
+                //TODO: Fix currentnodemodel cache after restarting
+                //DungeonHelper.CachedCurrentNodeModel.encounter is not BOSS &&
                 (result is WIN or NONE || DungeonHelper.CachedCurrentNodeModel.encounter == START))
             {
                 _advanceCooldown = 2f;
