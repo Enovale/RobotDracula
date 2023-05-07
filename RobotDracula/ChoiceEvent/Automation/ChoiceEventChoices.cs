@@ -20,8 +20,10 @@ namespace RobotDracula.ChoiceEvent.Automation
             {901007, 0}, // Yellow Butterflies - Take a break
             {901008, 0}, // Teddy Bear - Remove the Nails
             {901009, 1}, // Fire Candle Person - Peek at the book
+            {901010, 1}, // Red Jewel - Take the brass ring
             {901011, 1}, // Umbrella Fox - Pet the fox
             {901013, 0}, // Wooden Doll - Remove Doll Talismans
+            {901014, 0}, // Burning Beast - Give water
             {901016, 1}, // Drink Cavern - Shake your head.
             {901017, 0}, // Judgement Tablet - Read the tablet.
             {901018, 0}, // Signboard - Pick a rose.

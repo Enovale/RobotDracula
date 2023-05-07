@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using HarmonyLib;
 using Il2CppInterop.Runtime.Injection;
-using Il2CppSystem.IO;
 using RobotDracula.General;
 using RobotDracula.UI;
 using UnityEngine;
@@ -20,6 +22,12 @@ namespace RobotDracula
     public class Plugin : BasePlugin
     {
         private const string IL2CPP_LIBS_FOLDER = "interop";
+
+        private static string _jsonConfigFolder;
+        
+        private static string _egoGiftListPath = "ego_gifts.json";
+        
+        private static string _personalityListPath = "personalities.json";
 
         public string UnhollowedModulesFolder => Path.Combine(Paths.BepInExRootPath, IL2CPP_LIBS_FOLDER);
 
@@ -47,6 +55,10 @@ namespace RobotDracula
         
         public static ConfigEntry<bool> DungeonAutomationEnabled;
 
+        public static Dictionary<int, int> PersonalityPriority;
+        
+        public static List<int> EgoGiftPriority;
+
         public Plugin()
         {
             PluginLog = Log;
@@ -57,11 +69,22 @@ namespace RobotDracula
             // Plugin startup logic
             Log.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} loading...");
 
+            _jsonConfigFolder = Path.Combine(Path.GetDirectoryName(Config.ConfigFilePath), "RobotDracula");
+            
+            LoadJsonConfig();
+
             BattleAutomationEnabled = Config.Bind("Automation", nameof(BattleAutomationEnabled), false);
             EventAutomationEnabled = Config.Bind("Automation", nameof(EventAutomationEnabled), false);
             DungeonAutomationEnabled = Config.Bind("Automation", nameof(DungeonAutomationEnabled), false);
 
-            Harmony.CreateAndPatchAll(typeof(UtilHelper));
+            //var method = AccessTools.Method(typeof(Util), nameof(Util.SelectOne),
+            //    new[] { typeof(Il2CppSystem.Collections.Generic.List<>) }, new []{Type.});
+            //var baseMethod = typeof(Util).GetMethod(nameof(Util.SelectOne), 1, ReflectionUtility.FLAGS, null, new [] { typeof(Il2CppSystem.Collections.Generic.List<>) }, null);
+            //var method = baseMethod?.MakeGenericMethod(typeof(int));
+            //PluginLog.LogWarning(baseMethod);
+            //PluginLog.LogWarning(method);
+
+            Harmony.CreateAndPatchAll(typeof(UtilHelper));//.Patch(method, new HarmonyMethod(typeof(UtilHelper), nameof(UtilHelper.SelectOneWrapper)));
             
             Universe.Init(5f, OnInitialized, UniverseLog, new UniverseLibConfig()
             {
@@ -71,6 +94,56 @@ namespace RobotDracula
             });
             
             Log.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
+        }
+
+        private void LoadJsonConfig()
+        {
+            if (!Directory.Exists(_jsonConfigFolder))
+                Directory.CreateDirectory(_jsonConfigFolder);
+
+            var egoPath = Path.Combine(_jsonConfigFolder, _egoGiftListPath);
+            try
+            {
+                if (File.Exists(egoPath))
+                {
+                    using var stream = File.OpenRead(egoPath);
+                    EgoGiftPriority = JsonSerializer.Deserialize<List<int>>(stream);
+                }
+                else
+                {
+                    File.WriteAllText(egoPath, "[]");
+                }
+            }
+            catch (Exception e)
+            {
+                PluginLog.LogError(e);
+            }
+            finally
+            {
+                EgoGiftPriority ??= new();
+            }
+            
+            var personalityPath = Path.Combine(_jsonConfigFolder, _personalityListPath);
+            try
+            {
+                if (File.Exists(personalityPath))
+                {
+                    using var stream = File.OpenRead(personalityPath);
+                    PersonalityPriority = JsonSerializer.Deserialize<Dictionary<int, int>>(stream);
+                }
+                else
+                {
+                    File.WriteAllText(personalityPath, "{}");
+                }
+            }
+            catch (Exception e)
+            {
+                PluginLog.LogError(e);
+            }
+            finally
+            {
+                PersonalityPriority ??= new();
+            }
         }
 
         private void UniverseLog(string message, LogType type)

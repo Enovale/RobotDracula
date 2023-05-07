@@ -19,6 +19,8 @@ namespace RobotDracula.Dungeon.Automation
         
         private static float _levelUpCooldown;
         
+        private static float _newCharacterCooldown;
+        
         private static float _egoGiftCooldown;
         
         private static float _egoGiftPopupCooldown;
@@ -35,6 +37,7 @@ namespace RobotDracula.Dungeon.Automation
         {
             var result = DungeonProgressHelper.CurrentNodeResult;
             if (_advanceCooldown <= 0f && !_waitingForLevelUpResponse && 
+                DungeonHelper.CachedCurrentNodeModel.encounter is not BOSS &&
                 (result is WIN or NONE || DungeonHelper.CachedCurrentNodeModel.encounter == START))
             {
                 _advanceCooldown = 2f;
@@ -92,8 +95,86 @@ namespace RobotDracula.Dungeon.Automation
             _levelUpCooldown -= Time.fixedDeltaTime;
         }
 
-        public static void HandleNewCharacterAutomation()
+        public static void HandleNewCharacterAutomation(RandomDungeonAcquireCharacterPanel panel)
         {
+            if (_newCharacterCooldown <= 0f)
+            {
+                _newCharacterCooldown = 0.5f;
+                
+                var afterPanel = panel._afterSelectedPanel;
+                if (!afterPanel.gameObject.active)
+                {
+                    foreach (var kvp in Plugin.PersonalityPriority)
+                    {
+                        if (panel.IsSelectedFull)
+                            break;
+
+                        var item = panel._characterItemList[(Index)(kvp.Key - 1)]
+                            .Cast<RandomDungeonAcquireCharacterCandidateItem>();
+                        if (item._btn.interactable && !item.IsSelected)
+                        {
+                            item._btn.OnClick(false);
+                        }
+                    }
+
+                    foreach (var item in panel._characterItemList)
+                    {
+                        if (panel.IsSelectedFull)
+                            break;
+
+                        if (item._btn.interactable && !item.IsSelected)
+                        {
+                            item._btn.OnClick(false);
+                        }
+                    }
+
+                    panel._confirmStartMemberButton.OnClick(false);
+                }
+                else
+                {
+                    for (var i = 0; i < panel._selectedCount; i++)
+                    {
+                        var characterItem = afterPanel._selectedCharactersList[(Index)i].Cast<RandomDungeonAcquireCharacterSelectedItem>();
+                        characterItem._btn.OnClick(false);
+
+                        var switchPanel = afterPanel.SwitchPanel;
+                        UIScrollViewItem<IPersonality> personalityItem = null;
+                        if (Plugin.PersonalityPriority.TryGetValue((int)characterItem._characterType, out var personalityId))
+                        {
+                            personalityItem = switchPanel.PersonalityScrollView.GetItemByPersonalityId(personalityId);
+                        }
+                        else
+                        {
+                            Plugin.PluginLog.LogWarning($"No specified personality id for {i}");
+                            foreach (var pScrollViewItem in switchPanel.PersonalityScrollView._itemList)
+                            {
+                                if (!pScrollViewItem.Cast<FormationSwitchablePersonalityUIScrollViewItem>()._selectedFrame.enabled)
+                                {
+                                    personalityItem = pScrollViewItem;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (personalityItem == null)
+                        {
+                            Plugin.PluginLog.LogWarning($"Personality for {i} sinner could not be found.");
+                            break;
+                        }
+                        personalityItem.OnClick(false);
+                        ProgressSwitchPanel(switchPanel);
+
+                        if (switchPanel._currentListType == FORMATION_LIST_TYPE.EGO)
+                        {
+                            SelectEgoAndConfirm(switchPanel);
+                        }
+                    }
+                    
+                    afterPanel.btn_confirm.OnClick(false);
+                }
+            }
+
+            _newCharacterCooldown -= Time.fixedDeltaTime;
         }
 
         public static void HandleEgoGiftAutomation(SelectEgoGiftPanel panel)
@@ -101,8 +182,37 @@ namespace RobotDracula.Dungeon.Automation
             if (_egoGiftCooldown <= 0f)
             {
                 _egoGiftCooldown = 1f;
+
+                var priority = Plugin.EgoGiftPriority;
+                var sortedList = new List<SelectEgoGiftData>(panel._scrollView.dataList.Cast<IEnumerable<SelectEgoGiftData>>()).ToArray().ToList();
+                sortedList
+                    .Sort((i1, i2) =>
+                    {
+                        var id1 = i1.Id;
+                        var id2 = i2.Id;
+
+                        if (priority.Contains(id1) && priority.Contains(id2))
+                        {
+                            return priority.IndexOf(id1).CompareTo(priority.IndexOf(id2));
+                        }
+                        else if (priority.Contains(id1) && !priority.Contains(id2))
+                        {
+                            return int.MaxValue;
+                        }
+                        else if (!priority.Contains(id1) && priority.Contains(id2))
+                        {
+                            return -int.MaxValue;
+                        }
+                        else
+                        {
+                            return 0;
+                        }
+                    });
                 
-                panel._scrollView.GetItem(0).OnClick(false);
+                
+                Plugin.PluginLog.LogInfo("Ego Gifts sorted: " + string.Join(", ", sortedList.Select(e =>
+                    $"{e.Id} {TextDataManager.Instance.EgoGiftData.GetData(e.Id).name}")));
+                panel.SetSelected(sortedList.First(), false);
                 panel.btn_confirm.OnClick(false);
             }
 
@@ -134,7 +244,13 @@ namespace RobotDracula.Dungeon.Automation
             levelUpView.OpenConfirmView(test);
             levelUpView._confirmView.btn_confirm.OnClick(false);
             levelUpView._confirmView.OpenSetEgoPanel();
-            var potentialEgos = levelUpView._confirmView._switchPanel.EgoScrollView._itemList;
+            SelectEgoAndConfirm(levelUpView._confirmView._switchPanel);
+            _waitingForLevelUpResponse = true;
+        }
+
+        private static void SelectEgoAndConfirm(FormationSwitchablePersonalityUIPanel panel)
+        {
+            var potentialEgos = panel.EgoScrollView._itemList;
             var calculatedLength = 0;
             foreach (var ego in potentialEgos)
             {
@@ -143,9 +259,14 @@ namespace RobotDracula.Dungeon.Automation
             }
             
             if (calculatedLength > 0)
-                levelUpView._confirmView._switchPanel.EgoScrollView.OnSelect(potentialEgos[(Index)0].Cast<FormationSwitchableEgoUIScrollViewItem>(), false);
-            levelUpView._confirmView.FinishLevelUp();
-            _waitingForLevelUpResponse = true;
+                panel.EgoScrollView.OnSelect(potentialEgos[(Index)0].Cast<FormationSwitchableEgoUIScrollViewItem>(), false);
+
+            ProgressSwitchPanel(panel);
+        }
+
+        private static void ProgressSwitchPanel(FormationSwitchablePersonalityUIPanel panel)
+        {
+            panel.btn_confirm.btn_button.OnClick(false);
         }
 
         public static void ExecuteNextEncounter(NodeModel node = null)

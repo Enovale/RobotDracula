@@ -38,7 +38,7 @@ namespace RobotDracula.Trainer
 
         public static event MirrorLevelUpRewardEventHandler LevelUpUpdate;
 
-        public delegate void MirrorNewCharacterRewardEventHandler();
+        public delegate void MirrorNewCharacterRewardEventHandler(RandomDungeonAcquireCharacterPanel panel);
 
         public static event MirrorNewCharacterRewardEventHandler NewCharacterUpdate;
 
@@ -129,7 +129,7 @@ namespace RobotDracula.Trainer
                     }
                     else if (DungeonHelper.MirrorDungeonManager is {StageReward._acquireNewCharacterView.gameObject.active: true})
                     {
-                        NewCharacterUpdate?.Invoke();
+                        NewCharacterUpdate?.Invoke(DungeonHelper.MirrorDungeonManager.StageReward._acquireNewCharacterView);
                     }
                     else if (SingletonBehavior<DungeonFormationPanel>.Instance is {gameObject.active: true })
                     {
@@ -142,11 +142,22 @@ namespace RobotDracula.Trainer
                 }
                 else if (GlobalGameManager.Instance.CheckSceneState(SCENE_STATE.Main))
                 {
-                    var egoGiftPanel = UIPresenter.Controller.GetPanel(SELECT_EGO_GIFT).Cast<SelectEgoGiftPanel>();
-                    //var personalityPanel = (FormationSwitchablePersonalityUIPanel)UIPresenter.Controller.GetPanel(SELECT_PERSONALITY_FOR_DUNGEON);
-                    if (egoGiftPanel is {gameObject.active: true })
+                    if (UIPresenter.Controller != null)
                     {
-                        EgoGiftUpdate?.Invoke(egoGiftPanel);
+                        var egoGiftPanel = UIPresenter.Controller.GetPanel(SELECT_EGO_GIFT)
+                            ?.TryCast<SelectEgoGiftPanel>();
+                        //var personalityPanel = (FormationSwitchablePersonalityUIPanel)UIPresenter.Controller.GetPanel(SELECT_PERSONALITY_FOR_DUNGEON);
+                        if (egoGiftPanel is { gameObject.active: true })
+                        {
+                            EgoGiftUpdate?.Invoke(egoGiftPanel);
+                        }
+                        
+                        var newCharPanel = UIPresenter.Controller.GetPanel(SELECT_PERSONALITY_FOR_DUNGEON)
+                            ?.TryCast<RandomDungeonAcquireCharacterPanel>();
+                        if (newCharPanel is { gameObject.active: true })
+                        {
+                            NewCharacterUpdate?.Invoke(newCharPanel);
+                        }
                     }
                 }
             }

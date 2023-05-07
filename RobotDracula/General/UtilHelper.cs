@@ -32,5 +32,10 @@ namespace RobotDracula.General
 
             return true;
         }
+
+        public static void SelectOneWrapper()
+        {
+            Plugin.PluginLog.LogWarning("Select one wrapped yayyyyy");
+        }
     }
 }
