@@ -32,8 +32,10 @@ namespace RobotDracula.ChoiceEvent.Automation
             {901020, 0}, // Field of white - Approach it
             {901021, 0}, // Passenger between dimensions - Point where it should go
             {901022, 0}, // Empty Statue - Grab it's hand
+            {901023, 1}, // Resentful Tree - Snap the twig
             {901024, 1}, // Croohoo - Sit and wait
             {901025, 0}, // Person stands in the Square - Approach Them
+            {901026, 0}, // Cluster of eyes - Close your eyes
             {901027, 1}, // Blue Star - Backward
             {901028, 0}, // Flowers and Brambles - Pick a Flower
             {901031, 0}, // Machines exist for a purpose - Carry Luggage
@@ -42,10 +44,16 @@ namespace RobotDracula.ChoiceEvent.Automation
             {901034, 0}, // KQE Part One - Say [Hello]
             {90103401, 1}, // KQE Part Two - Take it and leave.
             {901035, 1}, // Scissors Girl - Play paper
+            
+            // Chicken event
             {910302, 0}, // Chicken Tango
             
             // Abnormality Events
             {801501, 1}, // Pink Shoes - Refuse
+            {801201, 0}, // YWTGB?H? - Investigate the factory
+            {801202, 1}, // YWTGB?H? - No.
+            {801203, 1}, // YWTGB?H? - No. (Doesn't appear to actually be used in-game but just in case)
+            {801204, 1}, // YWTGB?H? - No.
             {800203, 0}, // Calendar - Offer Clay Doll
         };
     }

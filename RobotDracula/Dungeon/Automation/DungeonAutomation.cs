@@ -187,35 +187,12 @@ namespace RobotDracula.Dungeon.Automation
                 _egoGiftCooldown = 1f;
 
                 var priority = Plugin.EgoGiftPriority;
-                var sortedList = new List<SelectEgoGiftData>(panel._scrollView.dataList.Cast<IEnumerable<SelectEgoGiftData>>()).ToArray().ToList();
-                sortedList
-                    .Sort((i1, i2) =>
-                    {
-                        var id1 = i1.Id;
-                        var id2 = i2.Id;
-
-                        if (priority.Contains(id1) && priority.Contains(id2))
-                        {
-                            return priority.IndexOf(id1).CompareTo(priority.IndexOf(id2));
-                        }
-                        else if (priority.Contains(id1) && !priority.Contains(id2))
-                        {
-                            return int.MaxValue;
-                        }
-                        else if (!priority.Contains(id1) && priority.Contains(id2))
-                        {
-                            return -int.MaxValue;
-                        }
-                        else
-                        {
-                            return 0;
-                        }
-                    });
+                var list = new List<SelectEgoGiftData>(panel._scrollView.dataList.Cast<IEnumerable<SelectEgoGiftData>>()).ToArray();
+                var sorted = list.OrderByDescending(e => priority.Contains(e.Id) ? priority.Count - priority.IndexOf(e.Id) : -1).ToList();
                 
-                
-                Plugin.PluginLog.LogInfo("Ego Gifts sorted: " + string.Join(", ", sortedList.Select(e =>
+                Plugin.PluginLog.LogInfo("Ego Gifts sorted: " + string.Join(", ", sorted.Select(e =>
                     $"{e.Id} {TextDataManager.Instance.EgoGiftData.GetData(e.Id).name}")));
-                panel.SetSelected(sortedList.First(), false);
+                panel.SetSelected(sorted.First(), false);
                 panel.btn_confirm.OnClick(false);
             }
 
@@ -240,11 +217,15 @@ namespace RobotDracula.Dungeon.Automation
             if (!levelUpView.isActiveAndEnabled || _waitingForLevelUpResponse)
                 return;
 
-            var numLevelUps = levelUpView._levelUpCount;
-            var PotentialLevelUps = levelUpView._levelUpDataList;
-            var data = PotentialLevelUps.ToArray().ToList().OrderByDescending(a => a.NextLevel).ToList();
-            var test = data[0];
-            levelUpView.OpenConfirmView(test);
+            var potentialLevelUps = levelUpView._levelUpDataList;
+            var priority = Plugin.PersonalityPriority.Values.ToList();
+            var data = potentialLevelUps.ToArray().ToList().
+                // Highest level always goes first
+                OrderByDescending(a => a.NextLevel)
+                // Level up the next person based on personality priority config
+                .ThenByDescending(a => priority.Contains(a.PersonalityId) ? priority.Count - priority.IndexOf(a.PersonalityId) : -1);
+            var idToLevelUp = data.First();
+            levelUpView.OpenConfirmView(idToLevelUp);
             levelUpView._confirmView.btn_confirm.OnClick(false);
             levelUpView._confirmView.OpenSetEgoPanel();
             SelectEgoAndConfirm(levelUpView._confirmView._switchPanel);
