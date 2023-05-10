@@ -1,8 +1,5 @@
-using System;
-using BattleUI;
 using ChoiceEvent;
 using Il2CppSystem.Text;
-using RobotDracula.Battle;
 using RobotDracula.Dungeon;
 using RobotDracula.General;
 using RobotDracula.Trainer;
@@ -23,7 +20,7 @@ namespace RobotDracula.UI
 
         public override int MinWidth { get; } = 230;
 
-        public override int MinHeight { get; } = 350;
+        public override int MinHeight { get; } = 250;
 
         public override Vector2 DefaultAnchorMin { get; } = Vector2.zero;
 
@@ -33,10 +30,6 @@ namespace RobotDracula.UI
             => new(Display.main.renderingWidth / 2f - MinWidth, (Display.main.renderingHeight - MinHeight) / 2f);
 
         public override bool CanDragAndResize { get; } = true;
-
-        private ChoiceEventProgressData _choiceEventData = null;
-
-        private bool _watchChoiceDebug;
 
         protected override void ConstructPanelContent()
         {
@@ -70,31 +63,7 @@ namespace RobotDracula.UI
                 () => TrainerManager.DungeonAutomationEnabled,
                 b => TrainerManager.DungeonAutomationEnabled = b, out _, out _);
             UIFactory.SetLayoutElement(dungeonToggle.gameObject, flexibleWidth: 200, flexibleHeight: 8);
-
-            var myLabel = UiHelper.CreateLabel(ContentRoot, "myLabel",
-                () => $"Current Stage Phase: {BattleHelper.StagePhase}");
-            UIFactory.SetLayoutElement(myLabel.gameObject);
-            var eventLabel = UiHelper.CreateLabel(ContentRoot, "eventLabel",
-                () =>
-                {
-                    var id = -1;
-                    if (GlobalGameManager.Instance.sceneState is SCENE_STATE.Battle or SCENE_STATE.MirrorDungeon)
-                    {
-                        if (DungeonHelper.DungeonUIManager is { _choiceEventController.IsActivated: true })
-                        {
-                            id = DungeonHelper.DungeonUIManager._choiceEventController.GetCurrentEventID();
-                        }
-                        else if (SingletonBehavior<BattleUIRoot>.Instance is
-                                 { AbUIController._choiceEventController.IsActivated: true })
-                        {
-                            id = SingletonBehavior<BattleUIRoot>.Instance.AbUIController._choiceEventController
-                                .GetCurrentEventID();
-                        }
-                    }
-
-                    return $"Current Event ID: {id}";
-                });
-            UIFactory.SetLayoutElement(eventLabel.gameObject);
+            
             var dungeonLabel = UIFactory.CreateLabel(ContentRoot, "dungeonLabel", "Dungeon Info:");
             UIFactory.SetLayoutElement(dungeonLabel.gameObject);
             var dungeonGroup = UIFactory.CreateHorizontalGroup(ContentRoot, "dungeonGroup", true, false, true, true);
@@ -104,26 +73,6 @@ namespace RobotDracula.UI
                 () => $"Encounter:\n{DungeonHelper.CachedCurrentNodeModel.encounterID}");
             var dungeonLabel6 = UiHelper.CreateLabel(dungeonGroup, "dungeonLabel6",
                 () => $"Result:\n{DungeonProgressHelper.CurrentNodeResult}");
-            
-            var choiceLabelGroup = UIFactory.CreateUIObject("choiceLabelGroup", ContentRoot);
-            UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(choiceLabelGroup, false, false, true, true, 2);
-            var choiceLabel = UIFactory.CreateLabel(choiceLabelGroup, "choiceLabel", "Event Things:");
-            UIFactory.SetLayoutElement(choiceLabel.gameObject);
-            var choiceButton = UiHelper.CreateButton(choiceLabelGroup, "choiceButton", "↻",
-                () => _choiceEventData = DungeonHelper.DungeonUIManager._choiceEventController._eventProgressData);
-            var choiceToggle = UiHelper.CreateToggle(choiceLabelGroup, "choiceToggle", "Watch", false,
-                val => _watchChoiceDebug = val, out _, out _);
-            UIFactory.SetLayoutElement(choiceToggle, minHeight: 25, flexibleWidth: 9999);
-            UIFactory.SetLayoutElement(choiceButton.GameObject, preferredWidth: 24, preferredHeight: 24);
-            var choiceGroup = UIFactory.CreateHorizontalGroup(ContentRoot, "choiceGroup", true, false, true, true);
-            var choiceLabel1 = UiHelper.CreateLabel(choiceGroup, "choiceLabel1",
-                () => $"Event ID:\n{_choiceEventData.CurrentEventID}");
-            var choiceLabel2 = UiHelper.CreateLabel(choiceGroup, "choiceLabel2",
-                () => $"Event Type:\n{_choiceEventData.CurrentEventType}");
-            var choiceLabel3 = UiHelper.CreateLabel(choiceGroup, "choiceLabel3",
-                () => $"Next Event ID:\n{_choiceEventData.ResultData.NextEventID}");
-            var choiceLabel4 = UiHelper.CreateLabel(choiceGroup, "choiceLabel4",
-                () => $"Result Index:\n{_choiceEventData.ResultData.RessultIndex}");
 
             var myBtn6 = UiHelper.CreateButton(ContentRoot, "myBtn6", "Print Dungeon", PrintDungeon);
             UIFactory.SetLayoutElement(myBtn6.GameObject, flexibleWidth: 200, flexibleHeight: 24);
@@ -161,21 +110,6 @@ namespace RobotDracula.UI
         protected override void OnClosePanelClicked()
         {
             Plugin.ShowTrainer = false;
-        }
-
-        public override void Update()
-        {
-            if (_watchChoiceDebug)
-            {
-                try
-                {
-                    _choiceEventData = DungeonHelper.DungeonUIManager._choiceEventController._eventProgressData;
-                }
-                catch (Exception)
-                {
-                    // ignored
-                }
-            }
         }
 
         private void PrintDungeon()

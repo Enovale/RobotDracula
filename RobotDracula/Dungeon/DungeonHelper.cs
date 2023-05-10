@@ -42,9 +42,6 @@ namespace RobotDracula.Dungeon
             {
                 var nodeId = DungeonProgressHelper.NodeID;
 
-                if (nodeId == -1)
-                    return null;
-
                 if (_cachedNodeId != nodeId)
                 {
                     _cachedNodeId = nodeId;

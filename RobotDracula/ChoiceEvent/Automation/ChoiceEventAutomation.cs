@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using ChoiceEvent;
 using RobotDracula.General;
 using UnityEngine;
@@ -21,21 +22,36 @@ namespace RobotDracula.ChoiceEvent.Automation
                 var resultSectionUI = controller._resultSectionUI;
                 if (choiceSectionUI._actionChoiceButtonManager.isActiveAndEnabled)
                 {
+                    var actionData = choiceSectionUI._actionProgressData;
                     if (_choiceActionDict.TryGetValue(controller.GetCurrentEventID(), out var i))
                     {
-                        if (choiceSectionUI._actionProgressData.ActionChoiceActionList._items[i])
+                        if (actionData.ActionChoiceActionList._items[i])
                         {
                             choiceSectionUI.OnClickActionChoiceButton(i);
                         }
                         else
                         {
-                            for (var j = 0; j < choiceSectionUI._actionProgressData.ActionChoiceActionList.Count; j++)
+                            for (var j = 0; j < actionData.ActionChoiceActionList.Count; j++)
                             {
-                                if (choiceSectionUI._actionProgressData.ActionChoiceActionList._items[j])
-                                {
-                                    choiceSectionUI.OnClickActionChoiceButton(j);
-                                }
+                                if (!actionData.ActionChoiceActionList._items[j])
+                                    continue;
+                                
+                                choiceSectionUI.OnClickActionChoiceButton(j);
+                                break;
                             }
+                        }
+                    }
+                    else
+                    {
+                        Plugin.PluginLog.LogWarning($"No action is registered for event ID {controller.GetCurrentEventID()}");
+                        Plugin.PluginLog.LogWarning("Action Options: " + string.Join(", ", actionData._actionEventTextData.options.ToArray().Select(o => o.Message)));
+                        for (var j = 0; j < actionData.ActionChoiceActionList.Count; j++)
+                        {
+                            if (!actionData.ActionChoiceActionList._items[j])
+                                continue;
+                            
+                            choiceSectionUI.OnClickActionChoiceButton(j);
+                            break;
                         }
                     }
                 }
