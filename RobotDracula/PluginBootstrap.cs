@@ -21,8 +21,10 @@ namespace RobotDracula
         {
             if (Input.GetKeyDown(KeyCode.F8))
                 Plugin.ShowTrainer = !Plugin.ShowTrainer;
-            if (Input.GetKeyDown(KeyCode.Backspace))
+            else if (Input.GetKeyDown(KeyCode.Backspace))
                 Singleton<StageController>.Instance.EndStageForcely();
+            else if (Input.GetKeyDown(KeyCode.Home))
+                GlobalGameManager.Instance.LoadScene(SCENE_STATE.Login);
             else if (Input.GetKeyDown(KeyCode.F9))
             {
                 foreach (var resourceLocator in Addressables.ResourceLocators.ToList())
