@@ -105,7 +105,7 @@ namespace RobotDracula.UI
         private void PrintDungeon()
         {
             // Gets every node in the entire dungeon
-            var next = DungeonHelper.MirrorMapManager._nodesByFloor;
+            var next = DungeonHelper.NodesByFloor;
 
             // Prints out all of said nodes (throws errors lol but dw about that)
             var strb = new StringBuilder();

@@ -46,7 +46,8 @@ namespace RobotDracula.ChoiceEvent.Automation
             {901035, 1}, // Scissors Girl - Play paper
             
             // Chicken event
-            {910302, 0}, // Chicken Tango
+            {910301, 0}, // Chicken Sticks or Breasts - Chicken's Chicken
+            {910302, 1}, // Chicken Tango - You saw nothing. - Tango Sauce
             
             // Abnormality Events
             {801501, 1}, // Pink Shoes - Refuse

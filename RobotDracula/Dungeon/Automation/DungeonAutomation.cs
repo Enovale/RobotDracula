@@ -27,15 +27,9 @@ namespace RobotDracula.Dungeon.Automation
 
         private static bool _waitingForLevelUpResponse;
 
-        private static Dictionary<int, MirrorDungeonNodeUI> _nodeDict
-            => DungeonHelper.MirrorMapManager._nodeDictionary;
-
-        private static List<MirrorDungeonMapNodeInfo> _currentFloorNodes
-            => DungeonHelper.MirrorMapManager._nodesByFloor[DungeonProgressManager.FloorNumber];
-        
         public static void HandleDungeonAutomation()
         {
-            if (!DungeonHelper.MirrorDungeonManager.StageReward._characterLevelUpView.IsOpened)
+            if (!DungeonHelper.StageReward!._characterLevelUpView.IsOpened)
                 _waitingForLevelUpResponse = false;
             
             var result = DungeonProgressHelper.CurrentNodeResult;
@@ -81,7 +75,7 @@ namespace RobotDracula.Dungeon.Automation
 
         public static void HandleLevelUpAutomation()
         {
-            var levelUpView = DungeonHelper.MirrorDungeonManager.StageReward._characterLevelUpView;
+            var levelUpView = DungeonHelper.StageReward!._characterLevelUpView;
             
             if (_levelUpCooldown <= 0f && levelUpView.IsOpened && !_waitingForLevelUpResponse && !levelUpView._confirmView.isActiveAndEnabled)
             {
@@ -92,7 +86,7 @@ namespace RobotDracula.Dungeon.Automation
             {
                 _levelUpCooldown = 0.5f;
                 _waitingForLevelUpResponse = false;
-                DungeonHelper.MirrorDungeonManager.StageReward._characterLevelUpView._confirmView.btn_close.OnClick(false);
+                DungeonHelper.StageReward._characterLevelUpView._confirmView.btn_close.OnClick(false);
             }
 
             _levelUpCooldown -= Time.fixedDeltaTime;
@@ -215,7 +209,7 @@ namespace RobotDracula.Dungeon.Automation
 
         public static void TryDoOneLevelUp()
         {
-            var levelUpView = DungeonHelper.MirrorDungeonManager._stageRewardManager._characterLevelUpView;
+            var levelUpView = DungeonHelper.StageReward!._characterLevelUpView;
             if (!levelUpView.isActiveAndEnabled || _waitingForLevelUpResponse)
                 return;
 
@@ -275,19 +269,20 @@ namespace RobotDracula.Dungeon.Automation
             DungeonProgressManager.UpdateCurrentNode(currentNode, nextNode, new());
 
             // Opens the formation panel or enter abno event screen.
-            DungeonHelper.MirrorMapManager._encounterManager.ExecuteEncounter(nextNode);
+            DungeonHelper.MapManager._encounterManager.ExecuteEncounter(nextNode);
         }
 
         public static NodeModel GetNextNode()
         {
             var currentNode = DungeonHelper.CachedCurrentNodeModel!;
-            var nextSector = _currentFloorNodes.ToArray()
+            var nextSector = DungeonHelper.CurrentFloorNodes!.ToArray()
                 .Where(n => n.sectorNumber == DungeonProgressManager.SectorNumber + 1).ToList();
 
             if (!nextSector.Any())
                 return null;
 
-            var sortedSector = nextSector.Where(i => DungeonHelper.MirrorMapManager.IsValidNode(currentNode, _nodeDict[i.nodeId].NodeModel))
+            var dict = DungeonHelper.NodeUIDictionary;
+            var sortedSector = nextSector.Where(i => DungeonHelper.MapManager.IsValidNode(currentNode, dict![i.nodeId].NodeModel))
                 // Prioritize sinner power-up
                 .OrderByDescending(i => i.GetEncounterType() == EVENT && i.encounterId is 900031)
                 // Prioritize regular events, not new recruit or healing
@@ -303,7 +298,7 @@ namespace RobotDracula.Dungeon.Automation
             if (nodeInfo == null && DungeonProgressHelper.CurrentNodeResult == INBATTLE)
                 return currentNode;
             
-            var chosenNode = _nodeDict[nodeInfo!.nodeId].NodeModel;
+            var chosenNode = dict[nodeInfo!.nodeId].NodeModel;
 
             return chosenNode;
         }

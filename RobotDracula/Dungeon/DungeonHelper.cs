@@ -1,31 +1,84 @@
 using Dungeon;
+using Dungeon.HellsChicken;
 using Dungeon.Map;
 using Dungeon.Map.UI;
 using Dungeon.Mirror;
+using Dungeon.Mirror.Map.UI;
 using Il2CppSystem.Collections.Generic;
+using JetBrains.Annotations;
 using RobotDracula.General;
 
 namespace RobotDracula.Dungeon
 {
+#nullable enable
     public static class DungeonHelper
     {
         public static DungeonManager DungeonManager
             => SingletonBehavior<DungeonManager>.Instance;
         
-        public static MirrorDungeonManager MirrorDungeonManager
-            => MirrorDungeonManager.MirrorInstance;
+        public static MirrorDungeonManager? MirrorDungeonManager
+            => DungeonManager.TryCast<MirrorDungeonManager>();
+        
+        public static HellsChickenDungeonManager? HellsChickenDungeonManager
+            => DungeonManager.TryCast<HellsChickenDungeonManager>();
 
         public static DungeonUIManager DungeonUIManager
             => SingletonBehavior<DungeonUIManager>.Instance;
 
-        public static MirrorDungeonUIManager MirrorDungeonUIManager
-            => SingletonBehavior<DungeonUIManager>.Instance.Cast<MirrorDungeonUIManager>();
-
         public static MapManager MapManager
             => DungeonManager.MapManager;
         
-        public static MirrorDungeonMapManager MirrorMapManager
-            => MirrorDungeonManager.MirrorMapManager;
+        public static MirrorDungeonMapManager? MirrorMapManager
+            => MirrorDungeonManager ? MirrorDungeonManager!.MirrorMapManager : null;
+
+        public static Dictionary<int, MirrorDungeonNodeUI>? NodeUIDictionary
+        {
+            get
+            {
+                if (MirrorDungeonManager)
+                    return MirrorDungeonManager!._nodeUIDictionary;
+                else if (HellsChickenDungeonManager)
+                    return HellsChickenDungeonManager!._nodeUIDictionary;
+                else
+                    return null;
+            }
+        }
+
+        public static Dictionary<int, List<MirrorDungeonMapNodeInfo>>? NodesByFloor
+        {
+            get
+            {
+                if (MirrorDungeonManager)
+                    return MirrorDungeonManager!._nodesDictionaryByFloor;
+                else if (HellsChickenDungeonManager)
+                    return HellsChickenDungeonManager!._nodesDictionaryByFloor;
+                else
+                    return null;
+            }
+        }
+
+        public static List<MirrorDungeonMapNodeInfo>? CurrentFloorNodes
+            => NodesByFloor?[DungeonProgressManager.FloorNumber];
+
+        public static RandomDungeonStageRewardManager? StageReward
+        {
+            get
+            {
+                var reward = DungeonManager.TryCast<MirrorDungeonManager>()?.StageReward;
+                if (reward is not null)
+                {
+                    return reward;
+                }
+                
+                reward = DungeonManager.TryCast<HellsChickenDungeonManager>()?.StageReward;
+                if (reward is not null)
+                {
+                    return reward;
+                }
+
+                return null;
+            }
+        }
 
         public static NodeUIManager NodeUiManager
             => MapManager._nodeUIManager;
@@ -35,7 +88,6 @@ namespace RobotDracula.Dungeon
 
         private static int _cachedNodeId = -1;
 
-#nullable enable
         private static NodeModel? _cachedNodeModel;
         
         public static NodeModel? CachedCurrentNodeModel

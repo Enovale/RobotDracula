@@ -119,7 +119,7 @@ namespace RobotDracula.Trainer
                         EgoGiftPopupUpdate?.Invoke();
                     }
                     
-                    if (DungeonHelper.MirrorDungeonManager is {StageReward._characterLevelUpView.IsOpened: true})
+                    if (DungeonHelper.StageReward is {_characterLevelUpView.IsOpened: true})
                     {
                         LevelUpUpdate?.Invoke();
                     }
@@ -127,21 +127,21 @@ namespace RobotDracula.Trainer
                     // Also the order of the ego gift and new recruit matter apparently.
                     // After completing a floor and getting a gift and a recruit, both are opened at the same time
                     // but the ego gift is rendered on top so it must be checked first.
-                    else if (DungeonHelper.MirrorDungeonManager is {StageReward._acquireEgoGiftView.gameObject.active: true})
+                    else if (DungeonHelper.StageReward is {_acquireEgoGiftView.gameObject.active: true})
                     {
-                        EgoGiftUpdate?.Invoke(DungeonHelper.MirrorDungeonManager.StageReward._acquireEgoGiftView);
+                        EgoGiftUpdate?.Invoke(DungeonHelper.StageReward._acquireEgoGiftView);
                     }
-                    else if (DungeonHelper.MirrorDungeonManager is {StageReward._acquireNewCharacterView.gameObject.active: true})
+                    else if (DungeonHelper.StageReward is {_acquireNewCharacterView.gameObject.active: true})
                     {
-                        NewCharacterUpdate?.Invoke(DungeonHelper.MirrorDungeonManager.StageReward._acquireNewCharacterView);
+                        NewCharacterUpdate?.Invoke(DungeonHelper.StageReward._acquireNewCharacterView);
                     }
                     else if (SingletonBehavior<DungeonFormationPanel>.Instance is {gameObject.active: true })
                     {
                         FormationUpdate?.Invoke();
                     }
-                    else if (DungeonHelper.MirrorDungeonManager is {StageReward.RewardStatusData.IsAllFinished: true})
+                    else if (DungeonHelper.StageReward is {RewardStatusData.IsAllFinished: true})
                     {
-                        MirrorDungeonMapUpdate?.Invoke();    
+                        MirrorDungeonMapUpdate?.Invoke();
                     }
                 }
                 else if (GlobalGameManager.Instance.CheckSceneState(SCENE_STATE.Main))
