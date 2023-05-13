@@ -37,8 +37,7 @@ namespace RobotDracula.Dungeon.Automation
         {
             var result = DungeonProgressHelper.CurrentNodeResult;
             if (_advanceCooldown <= 0f && !_waitingForLevelUpResponse && 
-                //TODO: Fix currentnodemodel cache after restarting
-                //DungeonHelper.CachedCurrentNodeModel.encounter is not BOSS &&
+                DungeonHelper.CachedCurrentNodeModel!.encounter is not BOSS &&
                 (result is WIN or NONE || DungeonHelper.CachedCurrentNodeModel.encounter == START))
             {
                 _advanceCooldown = 2f;
@@ -46,7 +45,7 @@ namespace RobotDracula.Dungeon.Automation
             }
             // TODO: Check this better because its activating after the formation panel closes but before the battle actually starts
             else if (_advanceCooldown <= 0f && result == INBATTLE && 
-                     !DungeonHelper.CachedCurrentNodeModel._isCleared &&
+                     !DungeonHelper.CachedCurrentNodeModel!._isCleared &&
                      !SingletonBehavior<DungeonFormationPanel>.Instance.gameObject.active)
             {
                 _advanceCooldown = 2f;
@@ -264,10 +263,10 @@ namespace RobotDracula.Dungeon.Automation
                 }
 
                 Plugin.PluginLog.LogWarning("Executing Current Node Instead of Next");
-                node = DungeonHelper.CachedCurrentNodeModel;
+                node = DungeonHelper.CachedCurrentNodeModel!;
             }
 
-            var currentNode = DungeonHelper.CachedCurrentNodeModel.Cast<INodeModel>();
+            var currentNode = DungeonHelper.CachedCurrentNodeModel!.Cast<INodeModel>();
             var nextNode = node.Cast<INodeModel>();
             // Seems to move the current node and ensure that NODERESULT gets set (sends move to the server)
             DungeonProgressManager.UpdateCurrentNode(currentNode, nextNode, new());
@@ -278,8 +277,7 @@ namespace RobotDracula.Dungeon.Automation
 
         public static NodeModel GetNextNode()
         {
-            // TODO: Use cache here but the cache breaks upon beating MD and restarting for some reason
-            var currentNode = DungeonHelper.CurrentNodeModel;
+            var currentNode = DungeonHelper.CachedCurrentNodeModel!;
             var nextSector = _currentFloorNodes.ToArray()
                 .Where(n => n.sectorNumber == DungeonProgressManager.SectorNumber + 1).ToList();
 
@@ -302,7 +300,7 @@ namespace RobotDracula.Dungeon.Automation
             if (nodeInfo == null && DungeonProgressHelper.CurrentNodeResult == INBATTLE)
                 return currentNode;
             
-            var chosenNode = _nodeDict[nodeInfo.nodeId].NodeModel;
+            var chosenNode = _nodeDict[nodeInfo!.nodeId].NodeModel;
 
             return chosenNode;
         }

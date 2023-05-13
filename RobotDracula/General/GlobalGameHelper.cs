@@ -21,7 +21,7 @@ namespace RobotDracula.General
 
         public static float TimeScale
         {
-            get => GlobalGameManager._currentTimeScale;
+            get => Time.timeScale;
             set
             {
                 GlobalGameManager._currentTimeScale = value;
@@ -31,24 +31,5 @@ namespace RobotDracula.General
 
         public static SCENE_STATE SceneState
             => GlobalGameManager.sceneState;
-
-        public static void StartProfiler()
-        {
-            GlobalGameManager._memoryRecorder =
-                ProfilerRecorder.StartNew(ProfilerCategory.Memory, "Total Reserved Memory");
-        }
-
-        public static void StopProfiler()
-        {
-            GlobalGameManager._memoryRecorder.Stop();
-        }
-
-        public static void DevLogin()
-        {
-            // Currently seems busted on steam.
-            // Haven't tried being logged out when it's called, though.
-            GlobalGameManager.Login_DEV();
-        }
-        
     }
 }

@@ -34,27 +34,28 @@ namespace RobotDracula.Dungeon
 
         private static int _cachedNodeId = -1;
 
-        private static NodeModel _cachedNodeModel;
-
-        public static NodeModel CachedCurrentNodeModel
+#nullable enable
+        private static NodeModel? _cachedNodeModel;
+        
+        public static NodeModel? CachedCurrentNodeModel
         {
             get
             {
                 var nodeId = DungeonProgressHelper.NodeID;
 
-                if (nodeId == -1)
+                if (nodeId == -1 || !DungeonProgressManager.IsOnDungeon())
                     return null;
 
-                if (_cachedNodeId != nodeId || _cachedNodeModel == null)
+                if (_cachedNodeId != nodeId || _cachedNodeModel?.id != nodeId)
                 {
                     _cachedNodeId = nodeId;
-
                     _cachedNodeModel = CurrentNodeModel;
                 }
 
                 return _cachedNodeModel;
             }
         }
+#nullable disable
 
         public static NodeUI CurrentNodeUI
             => NodeUiManager.FindNodeUI(CurrentNodeModel.id);

@@ -25,7 +25,7 @@ namespace RobotDracula
                 Singleton<StageController>.Instance.EndStageForcely();
             else if (Input.GetKeyDown(KeyCode.Home))
                 GlobalGameManager.Instance.LoadScene(SCENE_STATE.Login);
-            else if (Input.GetKeyDown(KeyCode.F9))
+            else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.F9))
             {
                 foreach (var resourceLocator in Addressables.ResourceLocators.ToList())
                 {
@@ -74,10 +74,13 @@ namespace RobotDracula
         // Run in fixed update because we don't need frame by frame updates
         private void FixedUpdate()
         {
+            if (GlobalGameManager.Instance == null || SceneManager.GetActiveScene().name == "LoadingScene")
+                return;
+            
             if (ReactiveUIEnabled && Plugin.ShowTrainer)
                 UiHelper.Update();
 
-            if (TrainerEnabled && SceneManager.GetActiveScene().name != "LoadingScene" && GlobalGameManager.Instance != null)
+            if (TrainerEnabled)
                 TrainerManager.Update();
         }
     }

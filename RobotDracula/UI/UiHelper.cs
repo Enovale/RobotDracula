@@ -88,8 +88,10 @@ namespace RobotDracula.UI
                     if (text.text != newTxt)
                         text.text = newTxt;
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    // TODO Eliminate all times this gets called
+                    Plugin.PluginLog.LogWarning(e);
                     text.text = "NULL";
                 }
             }

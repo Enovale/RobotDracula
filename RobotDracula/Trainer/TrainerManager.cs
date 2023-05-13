@@ -1,5 +1,6 @@
 using BattleUI;
 using ChoiceEvent;
+using Dungeon;
 using MainUI;
 using RobotDracula.Battle.Automation;
 using RobotDracula.ChoiceEvent.Automation;
@@ -111,7 +112,7 @@ namespace RobotDracula.Trainer
 
             if (DungeonAutomationEnabled)
             {
-                if (GlobalGameManager.Instance.CheckSceneState(SCENE_STATE.MirrorDungeon))
+                if (GlobalGameManager.Instance.CheckSceneState(SCENE_STATE.MirrorDungeon) && DungeonProgressManager.IsOnDungeon())
                 {
                     if (DungeonHelper.DungeonUIManager is {_egoGiftPopup.IsOpened: true})
                     {
