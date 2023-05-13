@@ -1,4 +1,4 @@
-using Unity.Profiling;
+using RobotDracula.Dungeon;
 using UnityEngine;
 
 namespace RobotDracula.General
@@ -31,5 +31,7 @@ namespace RobotDracula.General
 
         public static SCENE_STATE SceneState
             => GlobalGameManager.sceneState;
+
+        public static bool IsInDungeon() => DungeonHelper.IsDungeonState(SceneState);
     }
 }

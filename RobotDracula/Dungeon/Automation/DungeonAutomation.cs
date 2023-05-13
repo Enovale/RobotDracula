@@ -35,6 +35,9 @@ namespace RobotDracula.Dungeon.Automation
         
         public static void HandleDungeonAutomation()
         {
+            if (!DungeonHelper.MirrorDungeonManager.StageReward._characterLevelUpView.IsOpened)
+                _waitingForLevelUpResponse = false;
+            
             var result = DungeonProgressHelper.CurrentNodeResult;
             if (_advanceCooldown <= 0f && !_waitingForLevelUpResponse && 
                 DungeonHelper.CachedCurrentNodeModel!.encounter is not BOSS &&
@@ -44,7 +47,7 @@ namespace RobotDracula.Dungeon.Automation
                 ExecuteNextEncounter(GetNextNode());
             }
             // TODO: Check this better because its activating after the formation panel closes but before the battle actually starts
-            else if (_advanceCooldown <= 0f && result == INBATTLE && 
+            else if (_advanceCooldown <= 0f && result is INBATTLE && 
                      !DungeonHelper.CachedCurrentNodeModel!._isCleared &&
                      !SingletonBehavior<DungeonFormationPanel>.Instance.gameObject.active)
             {

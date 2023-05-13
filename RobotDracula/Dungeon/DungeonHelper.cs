@@ -3,6 +3,7 @@ using Dungeon.Map;
 using Dungeon.Map.UI;
 using Dungeon.Mirror;
 using Il2CppSystem.Collections.Generic;
+using RobotDracula.General;
 
 namespace RobotDracula.Dungeon
 {
@@ -43,7 +44,7 @@ namespace RobotDracula.Dungeon
             {
                 var nodeId = DungeonProgressHelper.NodeID;
 
-                if (nodeId == -1 || !DungeonProgressManager.IsOnDungeon())
+                if (nodeId == -1 || !DungeonProgressManager.IsOnDungeon() || !GlobalGameHelper.IsInDungeon())
                     return null;
 
                 if (_cachedNodeId != nodeId || _cachedNodeModel?.id != nodeId)
@@ -62,5 +63,11 @@ namespace RobotDracula.Dungeon
 
         public static List<AdjacentNode> CurrentAdjacentNodes
             => CurrentNodeModel.adjacentNodes;
+
+        public static bool IsDungeonState(SCENE_STATE state)
+            => state is SCENE_STATE.Dungeon 
+                or SCENE_STATE.MirrorDungeon 
+                or SCENE_STATE.RailwayDungeon
+                or SCENE_STATE.HellsChickenDungeon;
     }
 }

@@ -81,19 +81,20 @@ namespace RobotDracula.UI
                 flexibleHeight: 0);
             slider.value = 1f;
             slider.maxValue = 10f;
-            slider.minValue = 0f;
+            slider.minValue = 0.01f;
             slider.onValueChanged.AddListener(f => GeneralAutomation.DesiredTimescale = f);
             var timeScaleLabelGroup = UIFactory.CreateUIObject("timeScaleLabelGroup", ContentRoot);
             UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(timeScaleLabelGroup, false, false, true, true, 2);
+            var timeScaleLabel = UiHelper.CreateLabel(timeScaleLabelGroup, "timeScaleLabel", () => $"Timescale: {GlobalGameHelper.TimeScale:0.##}");
+            timeScaleLabel.alignment = TextAnchor.MiddleLeft;
+            UIFactory.SetLayoutElement(timeScaleLabel.gameObject, flexibleWidth: 99999, flexibleHeight: 99999);
             var timeScaleButton = UiHelper.CreateButton(timeScaleLabelGroup, "timeScaleButton", "↻",
                 () =>
                 {
                     GeneralAutomation.DesiredTimescale = 1f;
                     slider.value = GeneralAutomation.DesiredTimescale;
                 });
-            UIFactory.SetLayoutElement(timeScaleButton.GameObject, preferredWidth: 24, preferredHeight: 24);
-            var timeScaleLabel = UiHelper.CreateLabel(timeScaleLabelGroup, "timeScaleLabel", () => $"Timescale: {GlobalGameHelper.TimeScale}");
-            UIFactory.SetLayoutElement(timeScaleLabel.gameObject);
+            UIFactory.SetLayoutElement(timeScaleButton.GameObject, minWidth: 24, minHeight: 24);
         }
 
         protected override void OnClosePanelClicked()

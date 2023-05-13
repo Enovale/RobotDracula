@@ -17,15 +17,6 @@ namespace RobotDracula.UI
         {
             var startText = string.Empty;
 
-            try
-            {
-                startText = textGetter.Invoke();
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
-
             var text = UIFactory.CreateLabel(parent, name, startText);
             _labelDict.Add(text, textGetter);
 

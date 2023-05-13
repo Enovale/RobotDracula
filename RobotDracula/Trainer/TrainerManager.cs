@@ -101,7 +101,7 @@ namespace RobotDracula.Trainer
                             ._choiceEventController);
                     }
                 }
-                else if (GlobalGameManager.Instance.sceneState is SCENE_STATE.MirrorDungeon)
+                else if (GlobalGameHelper.IsInDungeon())
                 {
                     if (DungeonHelper.DungeonUIManager is { _choiceEventController.IsActivated: true })
                     {
@@ -112,7 +112,7 @@ namespace RobotDracula.Trainer
 
             if (DungeonAutomationEnabled)
             {
-                if (GlobalGameManager.Instance.CheckSceneState(SCENE_STATE.MirrorDungeon) && DungeonProgressManager.IsOnDungeon())
+                if (GlobalGameHelper.IsInDungeon() && DungeonProgressManager.IsOnDungeon())
                 {
                     if (DungeonHelper.DungeonUIManager is {_egoGiftPopup.IsOpened: true})
                     {
