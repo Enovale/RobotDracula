@@ -23,7 +23,6 @@
 
   <ItemGroup>
     <Reference Include="$(GameDirectoryPath)\BepInEx\interop\*.dll" />
-    <Reference Include="$(GameDirectoryPath)\BepInEx\core\Unhollower*.dll" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

@@ -25,8 +25,9 @@ namespace RobotDracula
                 Singleton<StageController>.Instance.EndStageForcely();
             else if (Input.GetKeyDown(KeyCode.Home))
                 GlobalGameManager.Instance.LoadScene(SCENE_STATE.Login);
-            else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.F9))
+            else if (Input.GetKeyDown(KeyCode.End))
             {
+                var str = string.Empty;
                 foreach (var resourceLocator in Addressables.ResourceLocators.ToList())
                 {
                     foreach (var key in resourceLocator.Keys.ToList())
@@ -36,6 +37,7 @@ namespace RobotDracula
                             keyStr.StartsWith("Assets") || keyStr.Contains("."))
                         {
                             var path = "./Export/" + keyStr;
+                            str += path + "\n";
 
                             try
                             {
@@ -68,6 +70,8 @@ namespace RobotDracula
                         }
                     }
                 }
+                
+                File.WriteAllText("./paths.txt", str);
             }
         }
 

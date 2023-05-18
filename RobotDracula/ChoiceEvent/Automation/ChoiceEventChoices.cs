@@ -56,6 +56,7 @@ namespace RobotDracula.ChoiceEvent.Automation
             {801203, 1}, // YWTGB?H? - No. (Doesn't appear to actually be used in-game but just in case)
             {801204, 1}, // YWTGB?H? - No.
             {800203, 0}, // Calendar - Offer Clay Doll
+            {800205, 0}, // Calendar - Sleep
         };
     }
 }
