@@ -1,9 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Dungeon;
 using Dungeon.Map;
-using Dungeon.Mirror.Map.UI;
-using Il2CppSystem.Collections.Generic;
 using MainUI;
 using UnityEngine;
 using static Dungeon.Map.ENCOUNTER;
@@ -27,6 +26,8 @@ namespace RobotDracula.Dungeon.Automation
 
         private static bool _waitingForLevelUpResponse;
 
+        private static List<NodeModel> _shortestPath;
+
         public static void HandleDungeonAutomation()
         {
             if (!DungeonHelper.StageReward!._characterLevelUpView.IsOpened)
@@ -38,7 +39,14 @@ namespace RobotDracula.Dungeon.Automation
                 (result is WIN or NONE || DungeonHelper.CachedCurrentNodeModel.encounter == START))
             {
                 _advanceCooldown = 2f;
-                ExecuteNextEncounter(GetNextNode());
+                if (_shortestPath == null || _shortestPath.Count <= 0)
+                {
+                    _shortestPath = DijkstraImpl.RunDijkstra().Select(n => (NodeModel)n).ToList();
+                }
+
+                var next = _shortestPath.First();
+                _shortestPath.Remove(next);
+                ExecuteNextEncounter(next);
             }
             // TODO: Check this better because its activating after the formation panel closes but before the battle actually starts
             else if (_advanceCooldown <= 0f && result is INBATTLE && 
@@ -51,6 +59,11 @@ namespace RobotDracula.Dungeon.Automation
             }
 
             _advanceCooldown -= Time.fixedDeltaTime;
+        }
+
+        public static void ResetPathfinding()
+        {
+            _shortestPath = null;
         }
 
         public static void HandleFormationAutomation()
@@ -92,6 +105,8 @@ namespace RobotDracula.Dungeon.Automation
             _levelUpCooldown -= Time.fixedDeltaTime;
         }
 
+        // TODO: Edge case where it spams the unusable confirm button without actually setting up the characters
+        // However, we ballin
         public static void HandleNewCharacterAutomation(RandomDungeonAcquireCharacterPanel panel)
         {
             if (_newCharacterCooldown <= 0f)
@@ -183,7 +198,7 @@ namespace RobotDracula.Dungeon.Automation
                 _egoGiftCooldown = 1f;
 
                 var priority = Plugin.EgoGiftPriority;
-                var list = new List<SelectEgoGiftData>(panel._scrollView.dataList.Cast<IEnumerable<SelectEgoGiftData>>()).ToArray();
+                var list = new Il2CppSystem.Collections.Generic.List<SelectEgoGiftData>(panel._scrollView.dataList.Cast<Il2CppSystem.Collections.Generic.IEnumerable<SelectEgoGiftData>>()).ToArray();
                 var sorted = list.OrderByDescending(e => priority.Contains(e.Id) ? priority.Count - priority.IndexOf(e.Id) : -1).ToList();
                 
                 Plugin.PluginLog.LogInfo("Ego Gifts sorted: " + string.Join(", ", sorted.Select(e =>
@@ -272,35 +287,45 @@ namespace RobotDracula.Dungeon.Automation
             DungeonHelper.MapManager._encounterManager.ExecuteEncounter(nextNode);
         }
 
-        public static NodeModel GetNextNode()
+        public static int GetCost(NodeModel current, NodeModel destination)
         {
-            var currentNode = DungeonHelper.CachedCurrentNodeModel!;
-            var nextSector = DungeonHelper.CurrentFloorNodes!.ToArray()
-                .Where(n => n.sectorNumber == DungeonProgressManager.SectorNumber + 1).ToList();
+            if (!current.IsContainNextNode(destination.id))
+                return int.MaxValue;
+            else
+                return GetCost(destination);
+        }
 
-            if (!nextSector.Any())
-                return null;
-
-            var dict = DungeonHelper.NodeUIDictionary;
-            var sortedSector = nextSector.Where(i => DungeonHelper.MapManager.IsValidNode(currentNode, dict![i.nodeId].NodeModel))
-                // Prioritize sinner power-up
-                .OrderByDescending(i => i.GetEncounterType() == EVENT && i.encounterId is 900031)
-                // Prioritize regular events, not new recruit or healing
-                .ThenByDescending(i => i.GetEncounterType() == EVENT && i.encounterId is not 900021 and not (>= 900011 and <= 900013))
-                .ThenByDescending(i => i.GetEncounterType() == EVENT)
-                .ThenByDescending(i => i.GetEncounterType() == BATTLE)
-                .ThenByDescending(i => i.GetEncounterType() == HARD_BATTLE)
-                .ThenByDescending(i => i.GetEncounterType() == AB_BATTLE)
-                .ThenByDescending(i => i.GetEncounterType() == BOSS)
-                .ThenByDescending(i => i.GetEncounterType() == SAVE);
-            var nodeInfo = sortedSector.FirstOrDefault();
-
-            if (nodeInfo == null && DungeonProgressHelper.CurrentNodeResult == INBATTLE)
-                return currentNode;
-            
-            var chosenNode = dict[nodeInfo!.nodeId].NodeModel;
-
-            return chosenNode;
+        // TODO: Currently it will forego 2 healing events if it means it can get 1 power up
+        // Kinda makes sense, but at the level of difficulty that the current mirror dungeon provides,
+        // you really don't need the powerup and we're optimizing for time, here.
+        public static int GetCost(NodeModel node)
+        {
+            switch (node)
+            {
+                // Power up gooooood
+                case {encounter: EVENT, encounterID: 900031}:
+                    return 4;
+                // Regular events
+                case {encounter: EVENT, encounterID: not 900021 and not (>= 900011 and <= 900013)}:
+                    return 6;
+                // Heals and Recruits.
+                // This needs to be less than (Powerup Cost / 2), so that 2 heals are prioritized over 1 powerup
+                case {encounter: EVENT}:
+                    return 7;
+                // Weigh all battles relatively the same, however still ordered.
+                // If they are too costly we may end up avoiding events to prioritize avoid them; bad.
+                case {encounter: BATTLE}:
+                    return 9;
+                case {encounter: HARD_BATTLE}:
+                    return 10;
+                case {encounter: AB_BATTLE}:
+                    return 11;
+                case {encounter: SAVE}:
+                case {encounter: BOSS}:
+                    return 1;
+                default:
+                    return int.MaxValue;
+            }
         }
     }
 }

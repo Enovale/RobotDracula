@@ -83,9 +83,14 @@ namespace RobotDracula.Trainer
         public static void Update()
         {
             UtilHelper.MouseButtonUp = false;
+            
+            // Need to know when a dungeon has been reloaded
+            if (GlobalGameHelper.SceneState is SCENE_STATE.Main)
+                DungeonAutomation.ResetPathfinding();
+            
             TrainerUpdate?.Invoke();
             
-            if (BattleAutomationEnabled && GlobalGameManager.Instance.CheckSceneState(SCENE_STATE.Battle))
+            if (BattleAutomationEnabled && GlobalGameHelper.SceneState is SCENE_STATE.Battle)
             {
                 BattleUpdate?.Invoke();
             }
@@ -144,7 +149,7 @@ namespace RobotDracula.Trainer
                         MirrorDungeonMapUpdate?.Invoke();
                     }
                 }
-                else if (GlobalGameManager.Instance.CheckSceneState(SCENE_STATE.Main))
+                else if (GlobalGameHelper.SceneState is SCENE_STATE.Main)
                 {
                     if (UIPresenter.Controller != null)
                     {
