@@ -24,18 +24,12 @@ namespace RobotDracula.Dungeon.Automation
         
         private static float _egoGiftPopupCooldown;
 
-        private static bool _waitingForLevelUpResponse;
-
         private static List<NodeModel> _shortestPath;
 
         public static void HandleDungeonAutomation()
         {
-            if (!DungeonHelper.StageReward!._characterLevelUpView.IsOpened)
-                _waitingForLevelUpResponse = false;
-            
             var result = DungeonProgressHelper.CurrentNodeResult;
-            if (_advanceCooldown <= 0f && !_waitingForLevelUpResponse && 
-                DungeonHelper.CachedCurrentNodeModel!.encounter is not BOSS &&
+            if (_advanceCooldown <= 0f && DungeonHelper.CachedCurrentNodeModel!.encounter is not BOSS &&
                 (result is WIN or NONE || DungeonHelper.CachedCurrentNodeModel.encounter == START))
             {
                 _advanceCooldown = 2f;
@@ -91,16 +85,16 @@ namespace RobotDracula.Dungeon.Automation
         public static void HandleLevelUpAutomation()
         {
             var levelUpView = DungeonHelper.StageReward!._characterLevelUpView;
+            var inAfterConfirm = levelUpView._confirmView._afterConfirmView.cg_main.isActiveAndEnabled;
             
-            if (_levelUpCooldown <= 0f && levelUpView.IsOpened && !_waitingForLevelUpResponse && !levelUpView._confirmView.isActiveAndEnabled)
+            if (_levelUpCooldown <= 0f && levelUpView.IsOpened && !inAfterConfirm)
             {
                 _levelUpCooldown = 1f;
                 TryDoOneLevelUp();
             }
-            else if (_levelUpCooldown <= 0f && levelUpView.IsOpened && levelUpView._confirmView._afterConfirmView.isActiveAndEnabled)
+            else if (_levelUpCooldown <= 0f && levelUpView.IsOpened && inAfterConfirm)
             {
                 _levelUpCooldown = 0.5f;
-                _waitingForLevelUpResponse = false;
                 DungeonHelper.StageReward._characterLevelUpView._confirmView.btn_close.OnClick(false);
             }
 
@@ -227,8 +221,6 @@ namespace RobotDracula.Dungeon.Automation
         public static void TryDoOneLevelUp()
         {
             var levelUpView = DungeonHelper.StageReward!._characterLevelUpView;
-            if (!levelUpView.isActiveAndEnabled || _waitingForLevelUpResponse)
-                return;
 
             var potentialLevelUps = levelUpView._levelUpDataList;
             var priority = Plugin.PersonalityPriority.Values.ToList();
@@ -242,7 +234,6 @@ namespace RobotDracula.Dungeon.Automation
             levelUpView._confirmView.btn_confirm.OnClick(false);
             levelUpView._confirmView.OpenSetEgoPanel();
             SelectEgoAndConfirm(levelUpView._confirmView._switchPanel);
-            _waitingForLevelUpResponse = true;
         }
 
         private static void SelectEgoAndConfirm(FormationSwitchablePersonalityUIPanel panel)
