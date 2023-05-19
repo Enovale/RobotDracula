@@ -3,6 +3,8 @@ using System.IO;
 using Il2CppInterop.Runtime;
 using Il2CppSystem.Collections.Generic;
 using Il2CppSystem.Linq;
+using RobotDracula.Dungeon.Automation;
+using RobotDracula.General;
 using RobotDracula.Trainer;
 using RobotDracula.UI;
 using UnityEngine;
@@ -80,6 +82,10 @@ namespace RobotDracula
         {
             if (GlobalGameManager.Instance == null || SceneManager.GetActiveScene().name == "LoadingScene")
                 return;
+            
+            // Need to know when a dungeon has been reloaded
+            if (GlobalGameHelper.SceneState is SCENE_STATE.Main)
+                DungeonAutomation.ResetPathfinding();
             
             if (ReactiveUIEnabled && Plugin.ShowTrainer)
                 UiHelper.Update();

@@ -84,10 +84,6 @@ namespace RobotDracula.Trainer
         {
             UtilHelper.MouseButtonUp = false;
             
-            // Need to know when a dungeon has been reloaded
-            if (GlobalGameHelper.SceneState is SCENE_STATE.Main)
-                DungeonAutomation.ResetPathfinding();
-            
             TrainerUpdate?.Invoke();
             
             if (BattleAutomationEnabled && GlobalGameHelper.SceneState is SCENE_STATE.Battle)

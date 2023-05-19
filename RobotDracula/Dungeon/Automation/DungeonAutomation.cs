@@ -39,7 +39,9 @@ namespace RobotDracula.Dungeon.Automation
                 (result is WIN or NONE || DungeonHelper.CachedCurrentNodeModel.encounter == START))
             {
                 _advanceCooldown = 2f;
-                if (_shortestPath == null || _shortestPath.Count <= 0)
+                if (_shortestPath == null || 
+                    _shortestPath.Count <= 0 || 
+                    !DungeonHelper.CachedCurrentNodeModel.IsContainNextNode(_shortestPath.First().id))
                 {
                     _shortestPath = DijkstraImpl.RunDijkstra().Select(n => (NodeModel)n).ToList();
                 }
@@ -309,7 +311,7 @@ namespace RobotDracula.Dungeon.Automation
                 case {encounter: EVENT, encounterID: not 900021 and not (>= 900011 and <= 900013)}:
                     return 6;
                 // Heals and Recruits.
-                // This needs to be less than (Powerup Cost / 2), so that 2 heals are prioritized over 1 powerup
+                // This needs to be less than (Powerup Cost * 2), so that 2 heals are prioritized over 1 powerup
                 case {encounter: EVENT}:
                     return 7;
                 // Weigh all battles relatively the same, however still ordered.
