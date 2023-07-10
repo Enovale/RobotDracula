@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
 using ChoiceEvent;
+using Dungeon.Map;
+using RobotDracula.Dungeon;
 using RobotDracula.General;
 using UnityEngine;
 using static PERSONALITY_CHOICE_PROGRESSING_SECTION;
@@ -13,6 +15,10 @@ namespace RobotDracula.ChoiceEvent.Automation
         
         public static void HandleChoiceEventAutomation(ChoiceEventController controller)
         {
+            // TODO: Temporary measure because shops currently break everything horribly
+            if (DungeonHelper.CachedCurrentNodeModel?.encounter is ENCOUNTER.MIRROR_SHOP or ENCOUNTER.MIRROR_SELECT_EVENT)
+                return;
+            
             if (_eventChoiceCooldown <= 0)
             {
                 _eventChoiceCooldown = 0.75f;
@@ -45,6 +51,8 @@ namespace RobotDracula.ChoiceEvent.Automation
                     {
                         Plugin.PluginLog.LogWarning($"No action is registered for event ID {controller.GetCurrentEventID()}");
                         Plugin.PluginLog.LogWarning("Action Options: " + string.Join(", ", actionData._actionEventTextData.options.ToArray().Select(o => o.Message)));
+                        _eventChoiceCooldown = 30f;
+                        /*
                         for (var j = 0; j < actionData.ActionChoiceActionList.Count; j++)
                         {
                             if (!actionData.ActionChoiceActionList._items[j])
@@ -53,6 +61,7 @@ namespace RobotDracula.ChoiceEvent.Automation
                             choiceSectionUI.OnClickActionChoiceButton(j);
                             break;
                         }
+                        */
                     }
                 }
                 else if (personalityChoiceManager._currentSectionType is CHOICE or RESULT_CALCULATING)
@@ -64,7 +73,7 @@ namespace RobotDracula.ChoiceEvent.Automation
                         var highestRate = 0f;
                         for (var i = 0; i < personalityChoiceManager._currentButtonInUseCount; ++i)
                         {
-                            var unitDataModel = buttons[(Index)i].Cast<PersonalityChoiceButton>().UnitDataModel;
+                            var unitDataModel = buttons[(Index)i].Cast<PersonalityChoiceButton>().UnitModel;
                             var winRate = controller._eventProgressData.PersonalityChoiceData.GetWinRate(unitDataModel);
 
                             if (highestRate < winRate && !buttons[(Index)i].Cast<PersonalityChoiceButton>().CantSelectButton())
@@ -83,7 +92,8 @@ namespace RobotDracula.ChoiceEvent.Automation
                 {
                     resultSectionUI.btn_confirm.btn_confirm.OnClick(false);
                 }
-                else if (resultSectionUI.btn_battleEnter.isActiveAndEnabled)
+                
+                if (resultSectionUI.btn_battleEnter.isActiveAndEnabled)
                 {
                     resultSectionUI.btn_battleEnter.onClick.Invoke();
                 }

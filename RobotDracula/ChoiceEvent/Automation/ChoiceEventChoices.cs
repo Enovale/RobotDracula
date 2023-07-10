@@ -57,6 +57,11 @@ namespace RobotDracula.ChoiceEvent.Automation
             {801204, 1}, // YWTGB?H? - No.
             {800203, 0}, // Calendar - Offer Clay Doll
             {800205, 0}, // Calendar - Sleep
+            
+            // Mirror Dungeon 2
+            {901040, 1}, // Marble Stars - 1: Agree that they are stars - NOTE: 0 Gives a lot of cost which is cool but it requires a 25 skill check which is wew.
+            {901051, 0}, // Stone tower - 0: Place a stone over the tower
+            {901063, 1}, // This is a warzone - Tell the shooter you're on its side.
         };
     }
 }

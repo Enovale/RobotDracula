@@ -12,6 +12,14 @@ namespace RobotDracula.Dungeon.Automation
 {
     public static class DungeonAutomation
     {
+        public static readonly int[] AVERAGE_EGO_TIER_COST = new[]
+        {
+            103,
+            130,
+            180,
+            269
+        };
+
         private static float _advanceCooldown;
         
         private static float _formationCooldown;
@@ -54,7 +62,8 @@ namespace RobotDracula.Dungeon.Automation
                 ExecuteNextEncounter();
             }
 
-            _advanceCooldown -= Time.fixedDeltaTime;
+            if (Time.deltaTime < 1.0f)
+                _advanceCooldown -= Time.deltaTime;
         }
 
         public static void ResetPathfinding()
@@ -68,8 +77,11 @@ namespace RobotDracula.Dungeon.Automation
             {
                 _formationCooldown = 1f;
                 var formationPanel = SingletonBehavior<DungeonFormationPanel>.Instance;
+                var priority = Plugin.PersonalityPriority.Values.ToList();
                 var sortedUnits = formationPanel._playerUnitFormation.PlayerUnits.ToArray()
-                    .OrderByDescending(u => u.PersonalityLevel).ToArray();
+                    .OrderByDescending(u => u.PersonalityLevel)
+                    .ThenByDescending(a => priority.Contains(a.PersonalityId) ? priority.Count - priority.IndexOf(a.PersonalityId) : -1)
+                    .ToArray();
                 for (var i = 0; i < formationPanel._playerUnitFormation.PlayerUnits.Count; i++)
                 {
                     var isParticipated = i < formationPanel._curStage.ParticipantInfo.Max;
@@ -79,7 +91,8 @@ namespace RobotDracula.Dungeon.Automation
                 formationPanel.OnClickStartBattle();
             }
 
-            _formationCooldown -= Time.fixedDeltaTime;
+            if (Time.deltaTime < 1.0f)
+                _formationCooldown -= Time.deltaTime;
         }
 
         public static void HandleLevelUpAutomation()
@@ -98,7 +111,8 @@ namespace RobotDracula.Dungeon.Automation
                 DungeonHelper.StageReward._characterLevelUpView._confirmView.btn_close.OnClick(false);
             }
 
-            _levelUpCooldown -= Time.fixedDeltaTime;
+            if (Time.deltaTime < 1.0f)
+                _levelUpCooldown -= Time.deltaTime;
         }
 
         // TODO: Edge case where it spams the unusable confirm button without actually setting up the characters
@@ -107,7 +121,7 @@ namespace RobotDracula.Dungeon.Automation
         {
             if (_newCharacterCooldown <= 0f)
             {
-                _newCharacterCooldown = 0.5f;
+                _newCharacterCooldown = 1.0f;
                 
                 var afterPanel = panel._afterSelectedPanel;
                 if (!afterPanel.gameObject.active)
@@ -147,7 +161,7 @@ namespace RobotDracula.Dungeon.Automation
 
                         var switchPanel = afterPanel.SwitchPanel;
                         UIScrollViewItem<IPersonality> personalityItem = null;
-                        if (Plugin.PersonalityPriority.TryGetValue((int)characterItem._characterType, out var personalityId))
+                        if (Plugin.PersonalityPriority.TryGetValue((int)characterItem._data._characterType, out var personalityId))
                         {
                             personalityItem = switchPanel.PersonalityScrollView.GetItemByPersonalityId(personalityId);
                         }
@@ -165,18 +179,15 @@ namespace RobotDracula.Dungeon.Automation
                         }
 
                         if (personalityItem == null)
-                        {
-                            Plugin.PluginLog.LogWarning($"Personality for {i} sinner could not be found.");
-                            break;
-                        }
-                        
-                        if (!personalityItem.Cast<FormationSwitchablePersonalityUIScrollViewItem>()._selectedFrame.enabled)
+                            Plugin.PluginLog.LogWarning($"Personality for sinner {i} could not be found.");
+                        else if (!personalityItem.Cast<FormationSwitchablePersonalityUIScrollViewItem>()._selectedFrame.enabled)
                             personalityItem.OnClick(false);
+                        
                         ProgressSwitchPanel(switchPanel);
 
-                        while (switchPanel._currentListType == FORMATION_LIST_TYPE.EGO && switchPanel.IsOpened)
+                        if (switchPanel._currentListType == FORMATION_LIST_TYPE.EGO && switchPanel.IsOpened)
                         {
-                            SelectEgoAndConfirm(switchPanel);
+                            SelectEgosAndConfirm(switchPanel);
                         }
                     }
                     
@@ -184,7 +195,9 @@ namespace RobotDracula.Dungeon.Automation
                 }
             }
 
-            _newCharacterCooldown -= Time.fixedDeltaTime;
+            // The game LAGGGS when selecting all the units at once so only count down if game is operating normally
+            if (Time.deltaTime < 1.0f)
+                _newCharacterCooldown -= Time.deltaTime;
         }
 
         public static void HandleEgoGiftAutomation(SelectEgoGiftPanel panel)
@@ -203,7 +216,8 @@ namespace RobotDracula.Dungeon.Automation
                 panel.btn_confirm.OnClick(false);
             }
 
-            _egoGiftCooldown -= Time.fixedDeltaTime;
+            if (Time.deltaTime < 1.0f)
+                _egoGiftCooldown -= Time.deltaTime;
         }
 
         public static void HandleCloseAnnoyingEgoGiftPopup()
@@ -215,7 +229,8 @@ namespace RobotDracula.Dungeon.Automation
                 DungeonHelper.DungeonUIManager._egoGiftPopup.btn_cancel.OnClick(false);
             }
 
-            _egoGiftPopupCooldown -= Time.fixedDeltaTime;
+            if (Time.deltaTime < 1.0f)
+                _egoGiftPopupCooldown -= Time.deltaTime;
         }
 
         public static void TryDoOneLevelUp()
@@ -233,21 +248,23 @@ namespace RobotDracula.Dungeon.Automation
             levelUpView.OpenConfirmView(idToLevelUp);
             levelUpView._confirmView.btn_confirm.OnClick(false);
             levelUpView._confirmView.OpenSetEgoPanel();
-            SelectEgoAndConfirm(levelUpView._confirmView._switchPanel);
+            SelectEgosAndConfirm(levelUpView._confirmView._switchPanel);
         }
 
-        private static void SelectEgoAndConfirm(FormationSwitchablePersonalityUIPanel panel)
+        private static void SelectEgosAndConfirm(FormationSwitchablePersonalityUIPanel panel)
         {
-            var potentialEgos = panel.EgoScrollView._itemList;
-            var calculatedLength = 0;
-            foreach (var ego in potentialEgos)
-            {
-                if (ego._data == null) break;
-                calculatedLength++;
-            }
+            var potentialEgos = panel.EgoScrollView._itemList.ToArray();
+
+            // Select an ego for every available risk level
+            // Maybe add a priority for this later
+            var sortedEgos = potentialEgos.Where(e => (bool)e && e.Data != null)
+                .GroupBy(e => e.Data.ClassInfo.EgoType)
+                .Select(g => g.OrderByDescending(e => e.Data.Gacksung).First());
             
-            if (calculatedLength > 0)
-                panel.EgoScrollView.OnSelect(potentialEgos[(Index)0].Cast<FormationSwitchableEgoUIScrollViewItem>(), false);
+            foreach (var ego in sortedEgos)
+            {
+                panel.EgoScrollView.OnSelect(ego, false);
+            }
 
             ProgressSwitchPanel(panel);
         }
@@ -280,21 +297,34 @@ namespace RobotDracula.Dungeon.Automation
             DungeonHelper.MapManager._encounterManager.ExecuteEncounter(nextNode);
         }
 
-        public static int GetCost(NodeModel current, NodeModel destination)
+        public static int GetNodeWeight(NodeModel current, NodeModel destination)
         {
             if (!current.IsContainNextNode(destination.id))
                 return int.MaxValue;
             else
-                return GetCost(destination);
+                return GetNodeWeight(destination);
         }
 
         // TODO: Currently it will forego 2 healing events if it means it can get 1 power up
         // Kinda makes sense, but at the level of difficulty that the current mirror dungeon provides,
         // you really don't need the powerup and we're optimizing for time, here.
-        public static int GetCost(NodeModel node)
+        public static int GetNodeWeight(NodeModel node)
         {
             switch (node)
             {
+                // Mirror shop is weighed in an approximate amount of possible ego gifts
+                case {encounter: MIRROR_SHOP}:
+                    var currentCost = UserDataManager.Instance.MirrorDungeonSaveData.currentInfo.Cost;
+                    // TODO: Really rough estimate of how many ego gifts we can afford
+                    var approximateEgoGiftCount = (int)Math.Floor(currentCost / (AVERAGE_EGO_TIER_COST[0] + Math.Abs(AVERAGE_EGO_TIER_COST[1] - AVERAGE_EGO_TIER_COST[0]) / 2m));
+                    
+                    // If we have enough cost to buy at least 2 ego gifts,
+                    // Shops become more lucrative than an Event therefore
+                    // We prioritize them like multiple events.
+                    //
+                    // Otherwise, shops are basically just node skips
+                    // And should only be prioritized over battles.
+                    return 9 - (3 * approximateEgoGiftCount) + 1;
                 // Power up gooooood
                 case {encounter: EVENT, encounterID: 900031}:
                     return 4;
@@ -304,15 +334,17 @@ namespace RobotDracula.Dungeon.Automation
                 // Heals and Recruits.
                 // This needs to be less than (Powerup Cost * 2), so that 2 heals are prioritized over 1 powerup
                 case {encounter: EVENT}:
-                    return 7;
+                    return 8;
+                case {encounter: MIRROR_SELECT_EVENT}:
+                    return 8;
                 // Weigh all battles relatively the same, however still ordered.
-                // If they are too costly we may end up avoiding events to prioritize avoid them; bad.
+                // If they are too costly we may end up avoiding events to prioritize avoiding battle; bad.
                 case {encounter: BATTLE}:
-                    return 9;
-                case {encounter: HARD_BATTLE}:
                     return 10;
-                case {encounter: AB_BATTLE}:
+                case {encounter: HARD_BATTLE}:
                     return 11;
+                case {encounter: AB_BATTLE}:
+                    return 12;
                 case {encounter: SAVE}:
                 case {encounter: BOSS}:
                     return 1;

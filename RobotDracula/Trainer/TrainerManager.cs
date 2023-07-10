@@ -156,7 +156,7 @@ namespace RobotDracula.Trainer
                         {
                             EgoGiftUpdate?.Invoke(egoGiftPanel);
                         }
-                        
+
                         var newCharPanel = UIPresenter.Controller.GetPanel(SELECT_PERSONALITY_FOR_DUNGEON)
                             ?.TryCast<RandomDungeonAcquireCharacterPanel>();
                         if (newCharPanel is { gameObject.active: true })

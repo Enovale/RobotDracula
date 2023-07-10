@@ -47,7 +47,7 @@ namespace RobotDracula.Dungeon.Automation
                 unvisitedNodes.Remove(smallest);
                 foreach (var neighbor in smallest.Neighbors.Where(n => unvisitedNodes.Contains(n)))
                 {
-                    var newCost = smallest.Distance + DungeonAutomation.GetCost(smallest.NodeModel, neighbor.NodeModel);
+                    var newCost = smallest.Distance + DungeonAutomation.GetNodeWeight(smallest.NodeModel, neighbor.NodeModel);
                     if (newCost < neighbor.Distance)
                     {
                         neighbor.Distance = newCost;
