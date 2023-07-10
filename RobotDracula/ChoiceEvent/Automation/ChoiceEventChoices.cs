@@ -8,8 +8,8 @@ namespace RobotDracula.ChoiceEvent.Automation
         {
             // Mirror Dungeon
             {900011, 0}, // Vending Machine
-            {900012, 0},
-            {900013, 0},
+            {900012, 0}, // Vending Machine 2
+            {900013, 0}, // Vending Machine 3
             {900021, 0}, // New Recruit
             {900031, 0}, // Power Up
             
@@ -62,6 +62,7 @@ namespace RobotDracula.ChoiceEvent.Automation
             {901040, 1}, // Marble Stars - 1: Agree that they are stars - NOTE: 0 Gives a lot of cost which is cool but it requires a 25 skill check which is wew.
             {901051, 0}, // Stone tower - 0: Place a stone over the tower
             {901063, 1}, // This is a warzone - Tell the shooter you're on its side.
+            {901056, 1}, // Fairy Gentlemen - Weather the rain
         };
     }
 }

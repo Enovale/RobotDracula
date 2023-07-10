@@ -36,6 +36,10 @@ namespace RobotDracula.Dungeon.Automation
 
         public static void HandleDungeonAutomation()
         {
+            // During shops and rest stops we don't wanna keep navigating obviously
+            if (DungeonHelper.CachedCurrentNodeModel!.encounter is MIRROR_SHOP or MIRROR_SELECT_EVENT)
+                return;
+            
             var result = DungeonProgressHelper.CurrentNodeResult;
             if (_advanceCooldown <= 0f && DungeonHelper.CachedCurrentNodeModel!.encounter is not BOSS &&
                 (result is WIN or NONE || DungeonHelper.CachedCurrentNodeModel.encounter == START))
