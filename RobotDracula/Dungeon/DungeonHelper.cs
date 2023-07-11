@@ -24,6 +24,9 @@ namespace RobotDracula.Dungeon
         public static DungeonUIManager DungeonUIManager
             => SingletonBehavior<DungeonUIManager>.Instance;
 
+        public static MirrorDungeonUIManager MirrorDungeonUIManager
+            => SingletonBehavior<DungeonUIManager>.Instance.Cast<MirrorDungeonUIManager>();
+
         public static MapManager MapManager
             => DungeonManager.MapManager;
         
@@ -114,6 +117,9 @@ namespace RobotDracula.Dungeon
 
         public static List<AdjacentNode> CurrentAdjacentNodes
             => CurrentNodeModel.adjacentNodes;
+
+        public static int CurrentCost
+            => UserDataManager.Instance.MirrorDungeonSaveData.currentInfo.Cost;
 
         public static bool IsDungeonState(SCENE_STATE state)
             => state is SCENE_STATE.Dungeon 

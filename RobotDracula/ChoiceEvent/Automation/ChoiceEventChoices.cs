@@ -59,10 +59,13 @@ namespace RobotDracula.ChoiceEvent.Automation
             {800205, 0}, // Calendar - Sleep
             
             // Mirror Dungeon 2
+            {901015, 1}, // Brown Steam - I don't.
+            {901036, 1}, // Carmilla - Break the entryway.
+            {901037, 0}, // Pink droplet - Comfort it
             {901040, 1}, // Marble Stars - 1: Agree that they are stars - NOTE: 0 Gives a lot of cost which is cool but it requires a 25 skill check which is wew.
             {901051, 0}, // Stone tower - 0: Place a stone over the tower
-            {901063, 1}, // This is a warzone - Tell the shooter you're on its side.
             {901056, 1}, // Fairy Gentlemen - Weather the rain
+            {901063, 1}, // This is a warzone - Tell the shooter you're on its side.
         };
     }
 }
