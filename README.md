@@ -1,3 +1,4 @@
 # RobotDracula
 
-Applies a ligma stack to a particular game.
+Automation learning project for a certain korean gacha game.
+No longer functional with later updates.
